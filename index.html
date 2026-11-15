@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#0a0f1a"/>
+<title>좀비 웨이브 3D — 최후의 생존자</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://js.tosspayments.com/v2/standard"></script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highlight-color:transparent;background:#0a0f1a;color:#e2e8f0;overflow-x:hidden}
+#gameCanvas{display:block;width:100%;height:100%;touch-action:none}
+.vip-btn-glow{animation:vp 2.2s infinite ease-in-out}
+@keyframes vp{0%,100%{box-shadow:0 0 8px rgba(168,85,247,.45)}50%{box-shadow:0 0 15px rgba(232,121,249,.8)}}
+@keyframes bombPop{0%{transform:scale(.35) rotate(-12deg);opacity:0}25%{transform:scale(1.18) rotate(6deg);opacity:1}70%{transform:scale(1) rotate(0deg);opacity:1}100%{transform:scale(1.55);opacity:0}}
+.bomb-pop{animation:bombPop 1.05s ease-out forwards}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+<header class="border-b border-slate-800/80 bg-slate-900/95 backdrop-blur px-3 sm:px-4 py-2 sticky top-0 z-30">
+<div class="max-w-5xl mx-auto flex flex-col gap-1.5">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2 flex-wrap min-w-0">
+<span class="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500/30 to-rose-600/30 border border-orange-400/40 flex items-center justify-center text-sm">🧟</span>
+<h1 class="text-sm font-extrabold tracking-tight">좀비 웨이브 <span class="text-lime-400">3D</span></h1>
+<span id="userBadge" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-300">👤 게스트</span>
+<button id="vipOpenBtn" type="button" class="vip-btn-glow px-2 py-0.5 rounded-md text-[10px] font-black bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white border border-amber-300/70 cursor-pointer">👑 <span id="vipHeaderBtnLabel">VIP</span></button>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="px-2 py-1 rounded-lg text-xs font-extrabold bg-amber-500/15 border border-amber-500/40 text-amber-300">🪙 <span id="goldDisplay">0</span>G</div>
+<button id="serverSaveGoldBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-black bg-gradient-to-b from-amber-300 to-amber-600 text-slate-950 cursor-pointer"><span id="serverSaveBtnLabel">로그인</span></button>
+<button id="logoutBtn" type="button" class="hidden px-2 py-1 rounded-lg text-xs bg-slate-800 border border-slate-700 cursor-pointer">로그아웃</button>
+</div>
+</div>
+<div class="flex items-center justify-between gap-2 text-[11px] border-t border-slate-800/60 pt-1.5">
+<p id="syncStatusText" class="text-slate-400 truncate">로그인으로 전적 영구 저장</p>
+<div class="flex gap-1 shrink-0">
+<button id="bgmToggleBtn" type="button" class="px-2 py-1 rounded-md bg-indigo-950/80 border border-indigo-700/50 cursor-pointer">🎵</button>
+<button id="soundToggleBtn" type="button" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 cursor-pointer">🔊</button>
+<button id="resetOpenBtn" type="button" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 cursor-pointer">초기화</button>
+</div>
+</div>
+</div>
+</header>
+
+<main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-3 flex flex-col gap-3">
+<!-- Status bar -->
+<section class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+<div class="col-span-2 sm:col-span-2 bg-slate-900/90 border border-orange-500/30 rounded-xl px-3 py-2 flex items-center justify-between">
+<div>
+<div class="text-[10px] text-orange-300/80 font-bold">WAVE <span id="scoreBadge">1</span> · <span id="waveTimerText" class="tabular-nums">00:00 / 01:00</span></div>
+<div id="scoreDisplay" class="text-base sm:text-lg font-black text-orange-400">0 킬</div>
+</div>
+<button id="startGameBtn" type="button" class="px-3 py-2 rounded-lg text-xs font-black bg-gradient-to-r from-orange-500 to-rose-600 text-slate-950 cursor-pointer active:scale-95 transition">생존 시작</button>
+</div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">체력</div><div id="livesDisplay" class="text-sm font-bold text-rose-400">❤️❤️</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">주변 좀비</div><div id="speedDisplay" class="text-sm font-extrabold text-cyan-300 tabular-nums">대기</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">최고 처치</div><div id="highScoreDisplay" class="text-sm font-bold text-amber-300">0 킬</div></div>
+</section>
+
+<!-- 3D viewport -->
+<section class="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl shadow-black/50 bg-black" style="height:min(58vh,520px)">
+<div id="viewport" class="absolute inset-0"></div>
+<div id="gameOverlay" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+<div id="overlayTitle" class="text-2xl font-black text-orange-400 tracking-tight">좀비 웨이브 3D</div>
+<p id="overlaySub" class="text-xs text-slate-300 text-center px-6 max-w-sm">1분마다 다음 웨이브로! 벽을 엄폐물 삼아 몰려오는 좀비 떼를 처치하세요.</p>
+<button id="overlayActionBtn" type="button" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-500 text-slate-950 font-black text-sm cursor-pointer shadow-lg">생존 시작</button>
+</div>
+
+<!-- Bomb Explosion Visual Overlay (VIP Grenade) -->
+<div id="bombOverlay" class="pointer-events-none absolute inset-0 z-20 hidden items-center justify-center bg-amber-500/35 backdrop-blur-[1px]">
+<div class="flex flex-col items-center justify-center bomb-pop">
+<svg class="w-40 h-40 drop-shadow-[0_0_28px_rgba(251,146,60,0.95)]" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="60" cy="60" r="54" fill="url(#expGrad)" opacity="0.9"/>
+<path d="M60 6L71 32L98 18L84 45L114 54L88 69L105 95L75 84L65 114L50 86L22 100L36 72L6 63L32 48L15 22L45 33L60 6Z" fill="#FB923C" stroke="#FEF08A" stroke-width="3"/>
+<circle cx="60" cy="66" r="24" fill="#1E293B" stroke="#FACC15" stroke-width="3"/>
+<rect x="55" y="34" width="10" height="10" rx="2" fill="#475569"/>
+<path d="M60 34C62 24 70 20 78 22" stroke="#FDE047" stroke-width="3" stroke-linecap="round"/>
+<circle cx="80" cy="22" r="5" fill="#FEF08A"/>
+<defs>
+<radialGradient id="expGrad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(60 60) rotate(90) scale(54)">
+<stop stop-color="#FEF08A"/>
+<stop offset="0.6" stop-color="#F97316"/>
+<stop offset="1" stop-color="#DC2626" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>
+<div class="text-xl sm:text-2xl font-black text-yellow-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] tracking-tight -mt-2">💥 수류탄 폭발!</div>
+</div>
+</div>
+
+<!-- wave progress -->
+<div class="absolute left-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none flex flex-col items-center gap-1">
+<div class="text-[9px] text-amber-200/90 font-bold tracking-wide">WAVE</div>
+<div class="w-3 h-28 rounded-full bg-black/50 border border-white/20 overflow-hidden relative">
+<div id="fuelBarFill" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-lime-700 to-lime-300 transition-[height] duration-150" style="height:0%"></div>
+</div>
+<div id="fuelText" class="text-[9px] text-amber-100/80 font-bold tabular-nums">0%</div>
+</div>
+
+<!-- VIP Grenade Quick Use Button -->
+<button id="grenadeUseBtn" type="button" class="absolute right-2.5 bottom-9 z-10 px-3 py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-rose-600 hover:from-fuchsia-500 hover:to-rose-500 text-white border border-amber-300/80 shadow-lg text-xs font-black flex items-center gap-1.5 cursor-pointer active:scale-95 transition">
+<span>💣</span>
+<span id="grenadeBtnLabel">수류탄 (0)</span>
+<kbd class="px-1 py-0.5 rounded bg-black/35 text-[9px]">G</kbd>
+</button>
+
+<!-- touch zones hint -->
+<div class="absolute bottom-2 left-0 right-0 z-10 pointer-events-none flex justify-center">
+<div class="text-[10px] text-white/50 bg-black/40 px-3 py-1 rounded-full">WASD / 방향키 이동 · 자동 사격 · G 수류탄(VIP)</div>
+</div>
+</section>
+
+<!-- Weapon Shop (3 Weapons + VIP Grenade) -->
+<section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<div>
+<div class="text-xs font-extrabold text-lime-300">🔫 무기 상점</div>
+<div class="text-[10px] text-slate-400">장착 무기: <span id="equippedWeaponLabel" class="font-bold text-amber-300">권총</span></div>
+</div>
+<span class="text-[10px] text-slate-400">좀비 처치당 +10G (VIP +25G)</span>
+</div>
+<div id="weaponShopGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+</section>
+
+<section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<div>
+<div class="text-xs font-extrabold text-orange-300">🏆 명예의 전당</div>
+<div class="text-[10px] text-slate-400">최고 처치 수 &amp; 생존 웨이브</div>
+</div>
+<button id="refreshRankingBtn" type="button" class="px-2.5 py-1 rounded-lg text-[11px] bg-slate-800 border border-slate-700 cursor-pointer">새로고침</button>
+</div>
+<div class="rounded-lg border border-orange-500/25 px-3 py-2 flex justify-between text-[11px] bg-slate-950/80">
+<span class="text-slate-400">내 순위</span>
+<span id="myRankDetailText" class="font-bold text-orange-300">로그인 후 등록</span>
+</div>
+<div id="rankingListContainer" class="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto"></div>
+</section>
+
+<section class="bg-gradient-to-r from-slate-900 to-orange-950/20 border border-orange-500/30 rounded-xl p-3 flex justify-between items-center mb-3">
+<div class="flex items-center gap-2"><span class="text-lg">🧟</span><span class="text-xs font-black text-lime-300">바로가기 설치</span></div>
+<button id="androidInstallBtn" type="button" class="px-3 py-2 rounded-lg bg-orange-500 text-slate-950 text-xs font-black cursor-pointer"><span id="androidInstallBtnText">설치</span></button>
+</section>
+</main>
+
+<div id="toastBox" class="pointer-events-none fixed bottom-5 left-1/2 -translate-x-1/2 z-50 opacity-0 transition-all duration-200 translate-y-2">
+<div id="toastMsg" class="px-4 py-2 rounded-xl bg-slate-900/95 border border-orange-500/50 text-xs font-bold text-orange-200 shadow-xl">알림</div>
+</div>
+
+<div id="vipModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
+<div class="bg-slate-900 border border-purple-500/50 rounded-2xl max-w-md w-full p-5">
+<div class="flex justify-between mb-3"><h2 class="font-black text-amber-300">👑 VIP 7,000원</h2><button id="vipCloseBtn" type="button" class="cursor-pointer text-slate-400">✕</button></div>
+<ul class="text-xs text-slate-300 space-y-1 mb-3"><li>❤️ 체력 3개 &amp; 웨이브 생존 강화</li><li>🪙 좀비 처치 골드 25G (기본 10G)</li><li>💣 VIP 전용 수류탄 구매 가능 (전체 좀비 일소)</li></ul>
+<div id="tossWidgetLoading" class="text-xs text-center text-slate-500 py-3">결제 로딩...</div>
+<div id="toss-payment-method"></div><div id="toss-agreement"></div>
+<button id="vipPaySubmitBtn" type="button" disabled class="w-full mt-3 py-3 rounded-xl bg-amber-400 text-slate-950 font-black disabled:bg-slate-700 cursor-pointer">결제</button>
+</div>
+</div>
+
+<!-- 용사 키우기 동일 양식 로그인/회원가입 모달 -->
+<div id="authModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+<div class="bg-slate-900 border border-amber-500/40 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="text-lg">🟨</span>
+<h2 class="text-base font-extrabold text-amber-300">서버 저장 계정</h2>
+</div>
+<button id="authCloseBtn" type="button" class="text-slate-400 hover:text-slate-200 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed mb-4">휴대폰 번호 뒷 8자리와 숫자 비밀번호 4자리로 간편하게 서버에 데이터를 영구 저장하세요.</p>
+<div class="flex rounded-xl bg-slate-950 p-1 border border-slate-800 mb-4">
+<button id="modeLoginBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition cursor-pointer">기존 계정 로그인</button>
+<button id="modeRegisterBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition cursor-pointer">간편 회원가입</button>
+</div>
+<form id="authForm" class="flex flex-col gap-3.5">
+<div>
+<label class="block text-[11px] font-bold text-slate-300 mb-1.5">아이디 (휴대폰 번호 뒷 8자리)</label>
+<div class="flex items-center rounded-xl bg-slate-950 border border-slate-700 focus-within:border-amber-400 overflow-hidden">
+<span class="px-3 py-2.5 bg-slate-900 text-amber-300 font-extrabold text-sm border-r border-slate-800 select-none">010 -</span>
+<input id="authPhoneDigits" type="tel" inputmode="numeric" maxlength="9" required placeholder="1234-5678 (숫자 8자리)" class="w-full px-3 py-2.5 bg-transparent text-sm font-bold tracking-wider text-slate-100 focus:outline-none"/>
+</div>
+</div>
+<div>
+<label class="block text-[11px] font-bold text-slate-300 mb-1.5">비밀번호 (숫자 4자리)</label>
+<input id="authPinCode" type="password" inputmode="numeric" maxlength="4" pattern="\d{4}" required placeholder="숫자 4자리 입력 (예: 1234)" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm font-bold tracking-[0.35em] text-slate-100 focus:outline-none focus:border-amber-400"/>
+</div>
+<div id="authErrorMsg" class="hidden text-xs text-rose-400 font-semibold bg-rose-950/40 border border-rose-800/50 rounded-lg px-3 py-2"></div>
+<button id="authSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition mt-0.5 cursor-pointer">로그인 및 서버저장 연동</button>
+</form>
+</div>
+</div>
+
+<div id="resetModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-4">
+<div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5">
+<h2 class="font-extrabold mb-2">초기화</h2>
+<p class="text-xs text-slate-400 mb-4">기록을 모두 지울까요?</p>
+<div class="flex justify-end gap-2">
+<button id="resetCancelBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-slate-800 cursor-pointer">취소</button>
+<button id="resetConfirmBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-rose-600 cursor-pointer">초기화</button>
+</div>
+</div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ===== Shared app state (login/ranking) =====
+const GAME_ID = 'zombie_wave_3d_v1';
+const CLOUD = 'https://02826k.duckdns.org';
+const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const API = local ? '' : CLOUD;
+const TOSS_KEY = 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
+const VIP_PRICE = 7000;
+const STORAGE = 'zombie_wave_3d_save_v1';
+const TOKEN_KEY = 'moto_racing_3d_jwt';
+const USER_KEY = 'moto_racing_3d_user';
+const WAVE_DURATION_SEC = 60;
+
+// 3 Main Weapons: 권총, 기관총, 화염방사기 (+ VIP 수류탄)
+const WEAPONS = [
+  { id: 'pistol', name: '권총', icon: '🔫', cost: 0, fireRate: 0.36, dmg: 1, speed: 24, pellets: 1, spread: 0, color: 0xffdf69, desc: '기본 권총 · 안정적인 단발 사격' },
+  { id: 'mg', name: '기관총', icon: '🧨', cost: 1500, fireRate: 0.085, dmg: 1, speed: 30, pellets: 1, spread: 0.08, color: 0x38bdf8, desc: '초고속 연사 · 몰려오는 좀비 제압' },
+  { id: 'flamethrower', name: '화염방사기', icon: '🔥', cost: 5000, fireRate: 0.11, dmg: 2, speed: 16, pellets: 5, spread: 0.32, color: 0xf97316, life: 0.48, desc: '부채꼴 화염 · 다수 좀비 동시 소각' }
+];
+const GRENADE_COST = 500;
+
+let authToken = localStorage.getItem(TOKEN_KEY);
+let currentUsername = localStorage.getItem(USER_KEY);
+let isRegisterMode = false;
+
+const defState = () => ({
+  highScore: 0,
+  bestWave: 1,
+  gold: 200,
+  soundEnabled: true,
+  bgmEnabled: true,
+  isVip: false,
+  ownedWeapons: ['pistol'],
+  equippedWeapon: 'pistol',
+  grenades: 0
+});
+function sanitize(p) {
+  const b = defState();
+  if (!p || typeof p !== 'object') return b;
+  const owned = Array.isArray(p.ownedWeapons) && p.ownedWeapons.length ? p.ownedWeapons.filter(id => WEAPONS.some(w => w.id === id)) : ['pistol'];
+  if (!owned.includes('pistol')) owned.unshift('pistol');
+  const eq = owned.includes(p.equippedWeapon) ? p.equippedWeapon : 'pistol';
+  return {
+    highScore: typeof p.highScore === 'number' && p.highScore >= 0 ? Math.floor(p.highScore) : 0,
+    bestWave: typeof p.bestWave === 'number' && p.bestWave >= 1 ? Math.floor(p.bestWave) : 1,
+    gold: typeof p.gold === 'number' && p.gold >= 0 ? Math.floor(p.gold) : 200,
+    soundEnabled: typeof p.soundEnabled === 'boolean' ? p.soundEnabled : true,
+    bgmEnabled: typeof p.bgmEnabled === 'boolean' ? p.bgmEnabled : true,
+    isVip: !!p.isVip,
+    ownedWeapons: owned,
+    equippedWeapon: eq,
+    grenades: typeof p.grenades === 'number' && p.grenades >= 0 ? Math.floor(p.grenades) : 0
+  };
+}
+let state = (() => { try { const r = localStorage.getItem(STORAGE); return r ? sanitize(JSON.parse(r)) : defState(); } catch { return defState(); } })();
+
+function getWeapon() {
+  return WEAPONS.find(w => w.id === state.equippedWeapon) || WEAPONS[0];
+}
+
+function saveState(sync) {
+  try { localStorage.setItem(STORAGE, JSON.stringify(state)); } catch {}
+  if (sync && authToken) syncSave(false);
+}
+async function syncSave(show) {
+  if (!authToken) return;
+  try {
+    const res = await fetch(API + '/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
+      body: JSON.stringify({ gameId: GAME_ID, saveData: state, score: state.highScore })
+    });
+    if (res.status === 401 || res.status === 403) { handleLogout(true); return; }
+    if (res.ok) {
+      document.getElementById('syncStatusText').textContent = '클라우드 저장 완료';
+      if (show) showToast('🟨 저장 완료!');
+      fetchRank();
+    }
+  } catch {}
+}
+async function loadServer() {
+  if (!authToken) return;
+  try {
+    const res = await fetch(API + '/api/load?gameId=' + GAME_ID, { headers: { Authorization: 'Bearer ' + authToken } });
+    if (res.status === 401 || res.status === 403) { handleLogout(true); return; }
+    const d = await res.json();
+    if (res.ok && d.saveData) {
+      state = sanitize({ ...d.saveData, isVip: !!(d.isVip || d.saveData?.isVip) });
+      localStorage.setItem(STORAGE, JSON.stringify(state));
+      updateUI();
+    }
+  } catch {}
+}
+
+// Audio
+let audioCtx = null, bgmTimer = null, bgmStep = 0;
+const notes = [196, 247, 294, 392, 349, 294, 247, 220];
+function getAC() {
+  if (!audioCtx) { const C = window.AudioContext || window.webkitAudioContext; if (C) audioCtx = new C(); }
+  if (audioCtx?.state === 'suspended') audioCtx.resume().catch(() => {});
+  return audioCtx;
+}
+function startBGM() {
+  stopBGM();
+  if (!state.bgmEnabled) return;
+  const ctx = getAC(); if (!ctx) return;
+  bgmStep = 0;
+  bgmTimer = setInterval(() => {
+    if (!state.bgmEnabled || !audioCtx) return;
+    try {
+      const n = audioCtx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(notes[bgmStep++ % notes.length], n);
+      g.gain.setValueAtTime(0.025, n); g.gain.exponentialRampToValueAtTime(0.0001, n + 0.16);
+      o.connect(g); g.connect(audioCtx.destination); o.start(n); o.stop(n + 0.18);
+    } catch {}
+  }, 200);
+}
+function stopBGM() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
+function playSound(t) {
+  if (!state.soundEnabled) return;
+  const ctx = getAC(); if (!ctx) return;
+  const n = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  if (t === 'hit') {
+    o.type = 'square'; o.frequency.setValueAtTime(160, n); o.frequency.exponentialRampToValueAtTime(50, n + 0.25);
+    g.gain.setValueAtTime(0.1, n); g.gain.exponentialRampToValueAtTime(0.001, n + 0.26); o.start(n); o.stop(n + 0.28);
+  } else if (t === 'coin') {
+    o.type = 'sine'; o.frequency.setValueAtTime(900, n); o.frequency.exponentialRampToValueAtTime(1400, n + 0.08);
+    g.gain.setValueAtTime(0.06, n); g.gain.exponentialRampToValueAtTime(0.001, n + 0.1); o.start(n); o.stop(n + 0.12);
+  } else if (t === 'boom') {
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(140, n); o.frequency.exponentialRampToValueAtTime(28, n + 0.55);
+    g.gain.setValueAtTime(0.18, n); g.gain.exponentialRampToValueAtTime(0.001, n + 0.58); o.start(n); o.stop(n + 0.6);
+  }
+}
+
+// ===== ZOMBIE WAVE 3D ARENA =====
+const viewport = document.getElementById('viewport');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x101a18);
+scene.fog = new THREE.Fog(0x101a18, 22, 48);
+const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+camera.position.set(0, 19, 17);
+camera.lookAt(0, 0, 0);
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+viewport.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xb8d8c5, 0x26352d, 1.15));
+const sun = new THREE.DirectionalLight(0xffe4b5, 2.0);
+sun.position.set(-7, 15, 8); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(44, 44), new THREE.MeshStandardMaterial({ color: 0x34483a, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const grid = new THREE.GridHelper(44, 22, 0x59705b, 0x405445); grid.position.y = 0.012; scene.add(grid);
+
+// Perimeter walls + solid interior tactical walls (with collision boxes!)
+const obstacles = []; // { x, z, halfW, halfD }
+const wallMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.85, metalness: 0.15 });
+const wallTopMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.7 });
+for (const [x, z, sx, sz] of [[0, -21, 44, 1], [0, 21, 44, 1], [-21, 0, 1, 44], [21, 0, 1, 44]]) {
+  const w = new THREE.Mesh(new THREE.BoxGeometry(sx, 1.8, sz), wallMat);
+  w.position.set(x, 0.9, z); w.castShadow = true; w.receiveShadow = true; scene.add(w);
+}
+
+// Interior defensive walls (barricades) with real collision for player, zombies, and bullets
+const interiorWalls = [
+  [-6.5, -5.5, 4.5, 0.9, 1.7],
+  [6.5, -5.5, 4.5, 0.9, 1.7],
+  [-6.5, 6.5, 4.5, 0.9, 1.7],
+  [6.5, 6.5, 4.5, 0.9, 1.7],
+  [-11.5, 0.5, 0.9, 5.2, 1.7],
+  [11.5, 0.5, 0.9, 5.2, 1.7],
+  [0, -11.5, 5.2, 0.9, 1.7],
+  [0, 12.5, 5.2, 0.9, 1.7]
+];
+for (const [x, z, sx, sz, sy] of interiorWalls) {
+  const w = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), wallMat);
+  w.position.set(x, sy / 2, z); w.castShadow = true; w.receiveShadow = true; scene.add(w);
+  const cap = new THREE.Mesh(new THREE.BoxGeometry(sx + 0.12, 0.14, sz + 0.12), wallTopMat);
+  cap.position.set(x, sy + 0.07, z); scene.add(cap);
+  obstacles.push({ x, z, halfW: sx / 2, halfD: sz / 2 });
+}
+
+function resolveCircleBox(pos, radius, obs) {
+  const cx = Math.max(obs.x - obs.halfW, Math.min(pos.x, obs.x + obs.halfW));
+  const cz = Math.max(obs.z - obs.halfD, Math.min(pos.z, obs.z + obs.halfD));
+  const dx = pos.x - cx;
+  const dz = pos.z - cz;
+  const distSq = dx * dx + dz * dz;
+  if (distSq < radius * radius) {
+    if (distSq > 1e-6) {
+      const dist = Math.sqrt(distSq);
+      const overlap = radius - dist;
+      pos.x += (dx / dist) * overlap;
+      pos.z += (dz / dist) * overlap;
+    } else {
+      // Center is inside box; push out along shortest axis
+      const penX = obs.halfW + radius - Math.abs(pos.x - obs.x);
+      const penZ = obs.halfD + radius - Math.abs(pos.z - obs.z);
+      if (penX < penZ) pos.x += pos.x >= obs.x ? penX : -penX;
+      else pos.z += pos.z >= obs.z ? penZ : -penZ;
+    }
+    return true;
+  }
+  return false;
+}
+
+function makeSurvivor() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.42, .72, 5, 10), new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: .65 }));
+  body.position.y = 1.05; body.castShadow = true; g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.32, 16, 12), new THREE.MeshStandardMaterial({ color: 0xf2c9a5 }));
+  head.position.y = 1.82; head.castShadow = true; g.add(head);
+  const helmet = new THREE.Mesh(new THREE.SphereGeometry(.35, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: .2 }));
+  helmet.position.y = 2.02; g.add(helmet);
+  const gun = new THREE.Mesh(new THREE.BoxGeometry(.18, .18, .9), new THREE.MeshStandardMaterial({ color: 0x202833, metalness: .65, roughness: .35 }));
+  gun.position.set(.43, 1.35, -.28); g.add(gun);
+  const pack = new THREE.Mesh(new THREE.BoxGeometry(.5, .62, .28), new THREE.MeshStandardMaterial({ color: 0x854d0e }));
+  pack.position.set(0, 1.12, .48); g.add(pack);
+  return g;
+}
+const player = makeSurvivor();
+player.position.set(0, 0, 2);
+scene.add(player);
+
+// Shared geometries/materials for 10x zombie hordes (smooth 60fps!)
+const zombieMat = new THREE.MeshStandardMaterial({ color: 0x79a85a, roughness: .9 });
+const zombieDark = new THREE.MeshStandardMaterial({ color: 0x354b35, roughness: 1 });
+const zEyeMat = new THREE.MeshBasicMaterial({ color: 0xff3b30 });
+const zTorsoGeo = new THREE.CapsuleGeometry(.35, .68, 4, 8);
+const zHeadGeo = new THREE.SphereGeometry(.28, 10, 8);
+const zEyeGeo = new THREE.SphereGeometry(.042, 6, 6);
+const zArmGeo = new THREE.CapsuleGeometry(.10, .52, 3, 5);
+
+function makeZombie() {
+  const g = new THREE.Group();
+  const torso = new THREE.Mesh(zTorsoGeo, zombieDark); torso.position.y = .88; g.add(torso);
+  const head = new THREE.Mesh(zHeadGeo, zombieMat); head.position.y = 1.56; g.add(head);
+  for (const x of [-.11, .11]) {
+    const eye = new THREE.Mesh(zEyeGeo, zEyeMat); eye.position.set(x, 1.60, -.24); g.add(eye);
+  }
+  for (const x of [-.44, .44]) {
+    const arm = new THREE.Mesh(zArmGeo, zombieMat); arm.position.set(x, .98, -.08); arm.rotation.z = x < 0 ? -.55 : .55; g.add(arm);
+  }
+  return g;
+}
+
+const bossBodyMat = new THREE.MeshStandardMaterial({ color: 0x450a0a, roughness: .85 });
+const bossSkinMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: .8 });
+const bossHornMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: .4, roughness: .3 });
+function makeBossZombie() {
+  const g = new THREE.Group();
+  const torso = new THREE.Mesh(zTorsoGeo, bossBodyMat); torso.position.y = .88; g.add(torso);
+  const head = new THREE.Mesh(zHeadGeo, bossSkinMat); head.position.y = 1.56; g.add(head);
+  for (const x of [-.11, .11]) {
+    const eye = new THREE.Mesh(zEyeGeo, bossHornMat); eye.position.set(x, 1.60, -.24); g.add(eye);
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(.07, .28, 6), bossHornMat);
+    horn.position.set(x * 1.4, 1.88, 0); horn.rotation.z = x < 0 ? .3 : -.3; g.add(horn);
+  }
+  for (const x of [-.44, .44]) {
+    const arm = new THREE.Mesh(zArmGeo, bossSkinMat); arm.position.set(x, .98, -.08); arm.rotation.z = x < 0 ? -.55 : .55; g.add(arm);
+  }
+  g.scale.set(2.35, 2.35, 2.35);
+  return g;
+}
+
+const bGeo = new THREE.SphereGeometry(.14, 6, 6);
+const fGeo = new THREE.SphereGeometry(.26, 6, 6);
+const bulletMats = {
+  pistol: new THREE.MeshBasicMaterial({ color: 0xffdf69 }),
+  mg: new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
+  flamethrower: new THREE.MeshBasicMaterial({ color: 0xf97316 })
+};
+
+const zombies = [], bullets = [];
+let running = false, distance = 0, stage = 1, lives = 2, waveTime = 0;
+let spawnT = 0, shootT = 0, damageFlash = 0, lastSaveAt = 0;
+const keys = {}; const move = { x: 0, z: 0 };
+
+function resize() {
+  const w = viewport.clientWidth, h = viewport.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Wave 1: half zombies; Wave 2+: 2x per wave
+function spawnZombiePack() {
+  const cap = 360;
+  if (zombies.length >= cap) return;
+  const desiredPack = stage === 1 ? 2 : Math.min(24, 2 * Math.pow(2, stage - 1));
+  const packSize = Math.min(cap - zombies.length, desiredPack);
+  const baseAngle = Math.random() * Math.PI * 2;
+  for (let i = 0; i < packSize; i++) {
+    const z = makeZombie();
+    const a = baseAngle + (Math.random() - 0.5) * 0.65;
+    const r = 17.5 + Math.random() * 2.5;
+    z.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+    scene.add(z);
+    zombies.push({
+      mesh: z,
+      isBoss: false,
+      hp: 1 + Math.floor((stage - 1) / 2),
+      speed: 1.15 + Math.random() * 0.55 + Math.min(2.0, stage * 0.12),
+    });
+  }
+}
+
+function spawnBossZombie() {
+  const b = makeBossZombie();
+  const a = Math.random() * Math.PI * 2;
+  b.position.set(Math.cos(a) * 18, 0, Math.sin(a) * 18);
+  scene.add(b);
+  zombies.push({
+    mesh: b,
+    isBoss: true,
+    hp: 20 + stage * 15,
+    speed: 1.05 + Math.min(1.2, stage * 0.08)
+  });
+  showToast(`👹 WAVE ${stage} 보스 좀비 출현!`);
+}
+
+function clearActors() {
+  for (const z of zombies) scene.remove(z.mesh);
+  zombies.length = 0;
+  for (const b of bullets) scene.remove(b.mesh);
+  bullets.length = 0;
+}
+
+function startGame() {
+  clearActors();
+  distance = 0; stage = 1; lives = state.isVip ? 3 : 2; waveTime = 0;
+  spawnT = 0.25; shootT = 0.15; damageFlash = 0; lastSaveAt = 0;
+  player.position.set(0, 0, 2); player.rotation.y = 0;
+  running = true;
+  keys.w = keys.a = keys.s = keys.d = false;
+  if (state.bgmEnabled) startBGM();
+  document.getElementById('gameOverlay').classList.add('opacity-0', 'pointer-events-none');
+  updateUI();
+  showToast('🧟 WAVE 1 시작! 1분간 생존하세요!');
+}
+
+function endGame() {
+  running = false;
+  stopBGM();
+  const kills = Math.floor(distance);
+  if (kills > state.highScore) state.highScore = kills;
+  if (stage > state.bestWave) state.bestWave = stage;
+  saveState(true);
+  document.getElementById('overlayTitle').textContent = 'GAME OVER';
+  document.getElementById('overlaySub').textContent = `${kills.toLocaleString()}마리 처치 · WAVE ${stage} 도달`;
+  document.getElementById('overlayActionBtn').textContent = '다시 도전';
+  document.getElementById('gameOverlay').classList.remove('opacity-0', 'pointer-events-none');
+  updateUI();
+}
+
+function takeDamage() {
+  lives--;
+  damageFlash = 0.35;
+  playSound('hit');
+  showToast('🩸 공격받았다!');
+  if (lives <= 0) endGame();
+  updateUI();
+}
+
+function shootAt(target) {
+  const w = getWeapon();
+  const origin = new THREE.Vector3(player.position.x, .95, player.position.z - .2);
+  const baseDir = new THREE.Vector3(target.mesh.position.x, .95, target.mesh.position.z).sub(origin).normalize();
+  player.rotation.y = Math.atan2(baseDir.x, -baseDir.z);
+
+  const isFlame = w.id === 'flamethrower';
+  for (let i = 0; i < w.pellets; i++) {
+    const dir = baseDir.clone();
+    if (w.spread > 0) {
+      const ang = (Math.random() - 0.5) * w.spread;
+      const cos = Math.cos(ang), sin = Math.sin(ang);
+      const nx = dir.x * cos - dir.z * sin;
+      const nz = dir.x * sin + dir.z * cos;
+      dir.x = nx; dir.z = nz; dir.normalize();
+    }
+    const m = new THREE.Mesh(isFlame ? fGeo : bGeo, bulletMats[w.id]);
+    m.position.copy(origin);
+    scene.add(m);
+    bullets.push({
+      mesh: m,
+      dir,
+      speed: w.speed,
+      dmg: w.dmg,
+      pierce: isFlame,
+      life: w.life || 1.35
+    });
+  }
+}
+
+// VIP Grenade: Bomb image overlay + eliminate ALL zombies
+function useGrenade() {
+  if (!state.isVip) {
+    showToast('👑 수류탄은 VIP 전용입니다!');
+    vipM.classList.remove('hidden'); vipM.classList.add('flex'); initToss();
+    return;
+  }
+  if (!running) { showToast('게임 시작 후 사용할 수 있습니다!'); return; }
+  if (state.grenades <= 0) { showToast('💣 수류탄이 없습니다! 아래 무기 상점에서 구매하세요.'); return; }
+
+  state.grenades--;
+  playSound('boom');
+  const killed = zombies.length;
+  for (const z of zombies) scene.remove(z.mesh);
+  zombies.length = 0;
+
+  if (killed > 0) {
+    distance += killed;
+    state.gold += killed * 25;
+  }
+
+  // Show Bomb explosion image overlay
+  const bo = document.getElementById('bombOverlay');
+  bo.classList.remove('hidden');
+  bo.classList.add('flex');
+  // Restart animation
+  const animBox = bo.firstElementChild;
+  animBox.classList.remove('bomb-pop');
+  void animBox.offsetWidth;
+  animBox.classList.add('bomb-pop');
+  setTimeout(() => {
+    bo.classList.add('hidden');
+    bo.classList.remove('flex');
+  }, 1050);
+
+  saveState(false);
+  updateUI();
+  showToast(`💣 수류탄 폭발! 좀비 ${killed}마리 일소!`);
+}
+document.getElementById('grenadeUseBtn').onclick = useGrenade;
+
+function movePlayer(dt) {
+  let x = (keys.d || keys.ArrowRight ? 1 : 0) - (keys.a || keys.ArrowLeft ? 1 : 0);
+  let z = (keys.s || keys.ArrowDown ? 1 : 0) - (keys.w || keys.ArrowUp ? 1 : 0);
+  if (x || z) {
+    const len = Math.hypot(x, z) || 1;
+    x /= len; z /= len;
+    player.position.x = THREE.MathUtils.clamp(player.position.x + x * 7.5 * dt, -19.5, 19.5);
+    player.position.z = THREE.MathUtils.clamp(player.position.z + z * 7.5 * dt, -19.5, 19.5);
+    player.rotation.y = Math.atan2(x, -z);
+  }
+  for (const obs of obstacles) resolveCircleBox(player.position, 0.55, obs);
+}
+
+function isModalOpen() {
+  return !authM.classList.contains('hidden') || !vipM.classList.contains('hidden') || !resetM.classList.contains('hidden');
+}
+
+window.addEventListener('keydown', e => {
+  if (isModalOpen()) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+  keys[k] = true;
+  if (k === 'g' && running) useGrenade();
+  if (!running && (e.key === 'Enter' || e.code === 'Space')) startGame();
+});
+window.addEventListener('keyup', e => {
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  keys[k] = false;
+});
+
+let pointerDown = false;
+renderer.domElement.addEventListener('pointerdown', e => {
+  pointerDown = true;
+  renderer.domElement.setPointerCapture?.(e.pointerId);
+  steerPointer(e);
+  if (!running) startGame();
+});
+renderer.domElement.addEventListener('pointermove', e => { if (pointerDown) steerPointer(e); });
+renderer.domElement.addEventListener('pointerup', () => { pointerDown = false; });
+function steerPointer(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  const nx = (e.clientX - r.left) / r.width * 2 - 1;
+  const ny = (e.clientY - r.top) / r.height * 2 - 1;
+  move.x = THREE.MathUtils.clamp(nx * 18, -18, 18);
+  move.z = THREE.MathUtils.clamp(ny * 18, -18, 18);
+}
+document.getElementById('startGameBtn').onclick = () => { if (!running) startGame(); };
+document.getElementById('overlayActionBtn').onclick = startGame;
+
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.04, clock.getDelta());
+  if (running) {
+    waveTime += dt;
+    if (waveTime >= WAVE_DURATION_SEC) {
+      waveTime -= WAVE_DURATION_SEC;
+      stage++;
+      if (stage > state.bestWave) state.bestWave = stage;
+      saveState(false);
+      showToast(`🌊 WAVE ${stage} 시작! (1분 생존 성공!)`);
+      spawnBossZombie();
+    }
+
+    movePlayer(dt);
+    if (pointerDown) {
+      player.position.x += (move.x - player.position.x) * Math.min(1, dt * 5);
+      player.position.z += (move.z - player.position.z) * Math.min(1, dt * 5);
+      for (const obs of obstacles) resolveCircleBox(player.position, 0.55, obs);
+    }
+
+    // Zombie Horde Spawner (Wave 1 easier, Wave 2+ scales 2x)
+    spawnT -= dt;
+    if (spawnT <= 0) {
+      spawnZombiePack();
+      spawnT = stage === 1
+        ? 0.52 * (0.85 + Math.random() * 0.3)
+        : Math.max(0.14, 0.34 - (stage - 1) * 0.025) * (0.8 + Math.random() * 0.4);
+    }
+
+    // Auto-fire equipped weapon
+    const w = getWeapon();
+    shootT -= dt;
+    if (shootT <= 0 && zombies.length) {
+      let nearest = null, nd = Infinity;
+      for (const z of zombies) {
+        const d = player.position.distanceTo(z.mesh.position);
+        if (d < nd) { nd = d; nearest = z; }
+      }
+      const maxRange = w.id === 'flamethrower' ? 10.5 : 26;
+      if (nearest && nd < maxRange) {
+        shootAt(nearest);
+        shootT = w.fireRate;
+      } else {
+        shootT = 0.08;
+      }
+    }
+
+    // Bullets update & wall/zombie collision
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const b = bullets[i];
+      b.mesh.position.addScaledVector(b.dir, b.speed * dt);
+      b.life -= dt;
+
+      // Check interior wall hit
+      let hitWall = false;
+      for (const obs of obstacles) {
+        if (Math.abs(b.mesh.position.x - obs.x) < obs.halfW + 0.12 &&
+            Math.abs(b.mesh.position.z - obs.z) < obs.halfD + 0.12) {
+          hitWall = true; break;
+        }
+      }
+      if (hitWall || b.life <= 0) {
+        scene.remove(b.mesh);
+        bullets.splice(i, 1);
+        continue;
+      }
+
+      let consumed = false;
+      for (let j = zombies.length - 1; j >= 0; j--) {
+        const z = zombies[j];
+        const dx = b.mesh.position.x - z.mesh.position.x;
+        const dz = b.mesh.position.z - z.mesh.position.z;
+        const hitR = (b.pierce ? 0.95 : 0.72) + (z.isBoss ? 0.65 : 0);
+        if (dx * dx + dz * dz < hitR * hitR) {
+          z.hp -= b.dmg;
+          if (z.hp <= 0) {
+            scene.remove(z.mesh);
+            zombies.splice(j, 1);
+            if (z.isBoss) {
+              const bossGold = state.isVip ? 350 : 150;
+              distance += 10;
+              state.gold += bossGold;
+              showToast(`💀 보스 좀비 처치! +${bossGold}G`);
+            } else {
+              distance++;
+              state.gold += state.isVip ? 25 : 10;
+            }
+            playSound('coin');
+            if (distance - lastSaveAt >= 10) {
+              lastSaveAt = distance;
+              saveState(false);
+            }
+          }
+          if (!b.pierce) { consumed = true; break; }
+        }
+      }
+      if (consumed) {
+        scene.remove(b.mesh);
+        bullets.splice(i, 1);
+      }
+    }
+
+    // Zombies movement + wall collision
+    for (let i = zombies.length - 1; i >= 0; i--) {
+      const z = zombies[i];
+      const dx = player.position.x - z.mesh.position.x;
+      const dz = player.position.z - z.mesh.position.z;
+      const d = Math.hypot(dx, dz) || 1;
+      z.mesh.position.x += (dx / d) * z.speed * dt;
+      z.mesh.position.z += (dz / d) * z.speed * dt;
+      for (const obs of obstacles) resolveCircleBox(z.mesh.position, z.isBoss ? 0.95 : 0.42, obs);
+      z.mesh.rotation.y = Math.atan2(dx, -dz);
+      z.mesh.position.y = Math.sin(clock.elapsedTime * 5 + i) * 0.035;
+      if (d < (z.isBoss ? 1.45 : 1.0)) {
+        scene.remove(z.mesh);
+        zombies.splice(i, 1);
+        takeDamage();
+        if (!running) break;
+      }
+    }
+
+    camera.position.x += (player.position.x * 0.34 - camera.position.x) * Math.min(1, dt * 2.5);
+    camera.position.z += (player.position.z + 17 - camera.position.z) * Math.min(1, dt * 2.5);
+    camera.lookAt(player.position.x * 0.35, 0, player.position.z * 0.35);
+    if (damageFlash > 0) damageFlash = Math.max(0, damageFlash - dt);
+    updateUILive();
+  } else {
+    camera.position.x = Math.sin(clock.elapsedTime * 0.18) * 1.1;
+    camera.position.z = 17;
+    camera.lookAt(0, 0, 0);
+  }
+  renderer.render(scene, camera);
+}
+animate();
+
+function updateUILive() {
+  document.getElementById('scoreDisplay').textContent = Math.floor(distance).toLocaleString() + ' 킬';
+  document.getElementById('scoreBadge').textContent = String(stage);
+  const wm = String(Math.floor(waveTime / 60)).padStart(2, '0');
+  const ws = String(Math.floor(waveTime % 60)).padStart(2, '0');
+  document.getElementById('waveTimerText').textContent = `${wm}:${ws} / 01:00`;
+  document.getElementById('speedDisplay').textContent = running ? zombies.length + '마리' : '대기';
+  document.getElementById('livesDisplay').textContent = (state.isVip ? '👑 ' : '') + ('❤️'.repeat(Math.max(0, lives)) || '💀');
+  document.getElementById('goldDisplay').textContent = state.gold >= 10000 ? (state.gold / 10000).toFixed(1) + '만' : state.gold.toLocaleString();
+  document.getElementById('grenadeBtnLabel').textContent = state.isVip ? `수류탄 (${state.grenades})` : '수류탄 (VIP)';
+  const pct = Math.max(0, Math.min(100, (waveTime / WAVE_DURATION_SEC) * 100));
+  const fill = document.getElementById('fuelBarFill');
+  const ft = document.getElementById('fuelText');
+  if (fill) fill.style.height = pct + '%';
+  if (ft) ft.textContent = Math.floor(pct) + '%';
+}
+
+function renderWeaponShop() {
+  const grid = document.getElementById('weaponShopGrid');
+  grid.innerHTML = '';
+  document.getElementById('equippedWeaponLabel').textContent = getWeapon().icon + ' ' + getWeapon().name;
+
+  WEAPONS.forEach(w => {
+    const owned = state.ownedWeapons.includes(w.id);
+    const eq = state.equippedWeapon === w.id;
+    const canBuy = !owned && state.gold >= w.cost;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'text-left rounded-xl p-2.5 border transition cursor-pointer flex flex-col justify-between gap-1.5 ' + (
+      eq ? 'border-lime-400 bg-lime-950/30 ring-1 ring-lime-400/50' :
+      owned ? 'border-slate-700 bg-slate-950/90 hover:border-sky-400/60' :
+      canBuy ? 'border-amber-500/60 bg-slate-950/90 hover:bg-slate-800/90' :
+      'border-slate-800 bg-slate-950/60 opacity-80'
+    );
+    btn.innerHTML = `
+      <div class="flex items-center justify-between gap-1">
+        <span class="text-xs font-black text-white">${w.icon} ${w.name}</span>
+        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${
+          eq ? 'bg-lime-500/20 text-lime-300' : owned ? 'bg-slate-800 text-sky-300' : 'bg-amber-500/15 text-amber-300'
+        }">${eq ? '장착중' : owned ? '장착하기' : w.cost.toLocaleString() + 'G'}</span>
+      </div>
+      <div class="text-[10px] text-slate-400 leading-tight">${w.desc}</div>
+    `;
+    btn.onclick = () => {
+      if (eq) return;
+      if (owned) {
+        state.equippedWeapon = w.id;
+        saveState(true); updateUI();
+        playSound('coin');
+        showToast(`${w.icon} [${w.name}] 장착 완료!`);
+      } else if (state.gold >= w.cost) {
+        state.gold -= w.cost;
+        state.ownedWeapons.push(w.id);
+        state.equippedWeapon = w.id;
+        saveState(true); updateUI();
+        playSound('coin');
+        showToast(`🎉 [${w.name}] 구매 및 장착 완료!`);
+      } else {
+        showToast(`골드가 부족합니다! (${w.cost.toLocaleString()}G 필요)`);
+      }
+    };
+    grid.appendChild(btn);
+  });
+
+  // 4th slot: VIP-only Grenade
+  const gBtn = document.createElement('button');
+  gBtn.type = 'button';
+  gBtn.className = 'text-left rounded-xl p-2.5 border transition cursor-pointer flex flex-col justify-between gap-1.5 ' + (
+    state.isVip ? 'border-fuchsia-400/70 bg-fuchsia-950/25 hover:bg-fuchsia-950/45' : 'border-slate-700/80 bg-slate-950/70 hover:border-purple-500/60'
+  );
+  gBtn.innerHTML = `
+    <div class="flex items-center justify-between gap-1">
+      <span class="text-xs font-black text-white">💣 수류탄</span>
+      <span class="text-[10px] font-black px-1.5 py-0.5 rounded ${
+        state.isVip ? 'bg-fuchsia-500/25 text-fuchsia-200' : 'bg-amber-500/20 text-amber-300'
+      }">${state.isVip ? GRENADE_COST + 'G · 보유 ' + state.grenades : '🔒 VIP 전용'}</span>
+    </div>
+    <div class="text-[10px] text-slate-400 leading-tight">화면 폭발 &amp; 전체 좀비 즉시 제거 (G키)</div>
+  `;
+  gBtn.onclick = () => {
+    if (!state.isVip) {
+      showToast('👑 수류탄은 VIP 전용입니다!');
+      vipM.classList.remove('hidden'); vipM.classList.add('flex'); initToss();
+      return;
+    }
+    if (state.gold >= GRENADE_COST) {
+      state.gold -= GRENADE_COST;
+      state.grenades++;
+      saveState(true); updateUI();
+      playSound('coin');
+      showToast(`💣 수류탄 1개 구매 완료! (보유: ${state.grenades}개)`);
+    } else {
+      showToast(`골드가 부족합니다! (${GRENADE_COST}G 필요)`);
+    }
+  };
+  grid.appendChild(gBtn);
+}
+
+function updateUI() {
+  document.getElementById('highScoreDisplay').textContent = state.highScore.toLocaleString() + ' 킬';
+  document.getElementById('vipHeaderBtnLabel').textContent = state.isVip ? 'VIP중' : 'VIP';
+  document.getElementById('soundToggleBtn').textContent = state.soundEnabled ? '🔊' : '🔇';
+  document.getElementById('bgmToggleBtn').textContent = state.bgmEnabled ? '🎵' : '🔇';
+  updateUILive();
+  renderWeaponShop();
+  const b = document.getElementById('userBadge'), s = document.getElementById('syncStatusText');
+  const sl = document.getElementById('serverSaveBtnLabel'), lo = document.getElementById('logoutBtn');
+  if (authToken && currentUsername) {
+    b.textContent = '📱 ' + currentUsername + (state.isVip ? ' 👑' : '');
+    b.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/40 text-emerald-300';
+    s.textContent = '클라우드 연동 중'; sl.textContent = '서버저장'; lo.classList.remove('hidden');
+  } else {
+    b.textContent = '👤 게스트';
+    b.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-300';
+    s.textContent = '로그인으로 전적 영구 저장'; sl.textContent = '로그인'; lo.classList.add('hidden');
+  }
+}
+
+function showToast(m) {
+  const box = document.getElementById('toastBox');
+  document.getElementById('toastMsg').textContent = m;
+  box.classList.remove('opacity-0', 'translate-y-2');
+  box.classList.add('opacity-100', 'translate-y-0');
+  setTimeout(() => { box.classList.add('opacity-0', 'translate-y-2'); box.classList.remove('opacity-100', 'translate-y-0'); }, 2000);
+}
+
+document.getElementById('soundToggleBtn').onclick = () => { state.soundEnabled = !state.soundEnabled; saveState(true); updateUI(); };
+document.getElementById('bgmToggleBtn').onclick = () => {
+  state.bgmEnabled = !state.bgmEnabled; saveState(true); updateUI();
+  if (state.bgmEnabled) startBGM(); else stopBGM();
+};
+document.getElementById('refreshRankingBtn').onclick = fetchRank;
+
+async function fetchRank() {
+  const box = document.getElementById('rankingListContainer'), my = document.getElementById('myRankDetailText');
+  try {
+    const h = authToken ? { Authorization: 'Bearer ' + authToken } : {};
+    const res = await fetch(API + '/api/ranking?gameId=' + GAME_ID, { headers: h });
+    const d = await res.json();
+    if (!res.ok) throw 0;
+    if (d.myRank) my.textContent = `${d.totalPlayers}명 중 ${d.myRank.rank}위 · WAVE ${state.bestWave} · ${state.highScore.toLocaleString()}킬`;
+    else if (authToken) my.textContent = '서버저장 시 순위 반영';
+    else my.textContent = '로그인 후 등록';
+    box.innerHTML = '';
+    (d.rankings || []).forEach(it => {
+      const wv = it.bestWave ?? it.saveData?.bestWave ?? (it.isMe ? state.bestWave : 1);
+      const r = document.createElement('div');
+      r.className = 'rounded-lg px-3 py-1.5 border bg-slate-950 border-slate-800 flex justify-between items-center text-[11px]' + (it.isMe ? ' ring-1 ring-sky-400' : '');
+      r.innerHTML = '<span class="font-bold">' + it.rank + '. ' + it.maskedName + (it.isMe ? ' <span class="text-sky-300 text-[10px]">(나)</span>' : '') + ' <span class="text-slate-400 text-[10px]">· WAVE ' + wv + '</span></span><span class="font-black text-orange-400">' + (it.score || 0).toLocaleString() + ' 킬</span>';
+      box.appendChild(r);
+    });
+  } catch { box.innerHTML = '<div class="text-center text-[11px] text-slate-500 py-3">랭킹 대기 중</div>'; }
+}
+
+const vipM = document.getElementById('vipModal');
+document.getElementById('vipOpenBtn').onclick = () => { vipM.classList.remove('hidden'); vipM.classList.add('flex'); initToss(); };
+document.getElementById('vipCloseBtn').onclick = () => { vipM.classList.add('hidden'); vipM.classList.remove('flex'); };
+async function initToss() {
+  if (typeof TossPayments === 'undefined') return;
+  try {
+    const tp = TossPayments(TOSS_KEY);
+    const w = tp.widgets({ customerKey: TossPayments.ANONYMOUS });
+    await w.setAmount({ currency: 'KRW', value: VIP_PRICE });
+    await Promise.all([
+      w.renderPaymentMethods({ selector: '#toss-payment-method', variantKey: 'DEFAULT' }),
+      w.renderAgreement({ selector: '#toss-agreement', variantKey: 'AGREEMENT' })
+    ]);
+    document.getElementById('tossWidgetLoading').classList.add('hidden');
+    document.getElementById('vipPaySubmitBtn').disabled = false;
+  } catch {}
+}
+
+const authM = document.getElementById('authModal');
+const phone = document.getElementById('authPhoneDigits'), pin = document.getElementById('authPinCode');
+function setAuthMode(register) {
+  isRegisterMode = register;
+  document.getElementById('authErrorMsg').classList.add('hidden');
+  const ml = document.getElementById('modeLoginBtn');
+  const mr = document.getElementById('modeRegisterBtn');
+  const sb = document.getElementById('authSubmitBtn');
+  if (register) {
+    mr.className = 'flex-1 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition cursor-pointer';
+    ml.className = 'flex-1 py-1.5 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition cursor-pointer';
+    sb.textContent = '가입하고 현재 데이터 서버저장';
+  } else {
+    ml.className = 'flex-1 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition cursor-pointer';
+    mr.className = 'flex-1 py-1.5 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition cursor-pointer';
+    sb.textContent = '로그인 및 서버저장 연동';
+  }
+}
+document.getElementById('serverSaveGoldBtn').onclick = () => {
+  if (authToken) syncSave(true);
+  else { setAuthMode(false); authM.classList.remove('hidden'); authM.classList.add('flex'); setTimeout(() => phone.focus(), 50); }
+};
+document.getElementById('authCloseBtn').onclick = () => { authM.classList.add('hidden'); authM.classList.remove('flex'); };
+document.getElementById('modeLoginBtn').onclick = () => setAuthMode(false);
+document.getElementById('modeRegisterBtn').onclick = () => setAuthMode(true);
+phone.oninput = e => { const d = e.target.value.replace(/\D/g, '').slice(0, 8); e.target.value = d.length > 4 ? d.slice(0, 4) + '-' + d.slice(4) : d; };
+pin.oninput = e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); };
+document.getElementById('authForm').onsubmit = async e => {
+  e.preventDefault();
+  const errEl = document.getElementById('authErrorMsg');
+  errEl.classList.add('hidden');
+  const raw = phone.value.replace(/\D/g, '');
+  const pinVal = pin.value.trim();
+  if (raw.length !== 8) { errEl.textContent = '휴대폰 번호 뒷 8자리 숫자를 모두 입력해 주세요.'; errEl.classList.remove('hidden'); phone.focus(); return; }
+  if (!/^\d{4}$/.test(pinVal)) { errEl.textContent = '비밀번호는 숫자 4자리로 입력해 주세요.'; errEl.classList.remove('hidden'); pin.focus(); return; }
+
+  const id = '010-' + raw.slice(0, 4) + '-' + raw.slice(4);
+  const payload = isRegisterMode
+    ? { username: id, password: pinVal, initialSaveData: state, gameId: GAME_ID }
+    : { username: id, password: pinVal, gameId: GAME_ID };
+
+  try {
+    const res = await fetch(API + (isRegisterMode ? '/api/register' : '/api/login'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if (!res.ok) { errEl.textContent = d.error || '로그인/가입 처리 중 오류가 발생했습니다.'; errEl.classList.remove('hidden'); return; }
+    authToken = d.token; currentUsername = d.username;
+    localStorage.setItem(TOKEN_KEY, authToken); localStorage.setItem(USER_KEY, currentUsername);
+
+    if (!isRegisterMode) {
+      if (d.saveData) {
+        state = sanitize({ ...(d.saveData || {}), isVip: Boolean(d.isVip || d.saveData?.isVip) });
+        localStorage.setItem(STORAGE, JSON.stringify(state));
+        if (state.isVip) await syncSave(false);
+      } else {
+        if (d.isVip) state.isVip = true;
+        state = sanitize(state);
+        await syncSave(false);
+      }
+    } else {
+      if (d.isVip) state.isVip = true;
+      state = sanitize(state);
+      localStorage.setItem(STORAGE, JSON.stringify(state));
+    }
+
+    authM.classList.add('hidden'); authM.classList.remove('flex');
+    pin.value = '';
+    updateUI(); fetchRank();
+    showToast(isRegisterMode ? `🟨 [${currentUsername}] 가입 완료!` : `🟨 [${currentUsername}] 로그인 완료!`);
+  } catch {
+    errEl.textContent = '클라우드 게임 서버와 연결할 수 없습니다.';
+    errEl.classList.remove('hidden');
+  }
+};
+document.getElementById('logoutBtn').onclick = () => handleLogout(false);
+function handleLogout(exp) {
+  authToken = null; currentUsername = null;
+  localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY);
+  state.isVip = false; updateUI(); fetchRank();
+  showToast(exp ? '만료' : '로그아웃');
+}
+
+const resetM = document.getElementById('resetModal');
+document.getElementById('resetOpenBtn').onclick = () => { resetM.classList.remove('hidden'); resetM.classList.add('flex'); };
+document.getElementById('resetCancelBtn').onclick = () => { resetM.classList.add('hidden'); resetM.classList.remove('flex'); };
+document.getElementById('resetConfirmBtn').onclick = () => {
+  state = defState(); distance = 0; stage = 1; lives = 2; waveTime = 0; running = false; stopBGM(); clearActors();
+  document.getElementById('gameOverlay').classList.remove('opacity-0', 'pointer-events-none');
+  document.getElementById('overlayTitle').textContent = '좀비 웨이브 3D';
+  document.getElementById('overlaySub').textContent = '1분마다 다음 웨이브로! 벽을 엄폐물 삼아 몰려오는 좀비 떼를 처치하세요.';
+  document.getElementById('overlayActionBtn').textContent = '생존 시작';
+  saveState(true); updateUI();
+  resetM.classList.add('hidden'); resetM.classList.remove('flex');
+  showToast('🔄 초기화');
+};
+
+let deferred = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; });
+document.getElementById('androidInstallBtn').onclick = async () => {
+  if (deferred) { deferred.prompt(); await deferred.userChoice; deferred = null; document.getElementById('androidInstallBtnText').textContent = '완료'; return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['[InternetShortcut]\\r\\nURL=' + location.href + '\\r\\n'], { type: 'text/plain' }));
+  a.download = '좀비웨이브3D.url'; a.click();
+  document.getElementById('androidInstallBtnText').textContent = '완료';
+};
+
+updateUI();
+if (authToken) loadServer();
+fetchRank();
+</script>
+</body>
+</html>
