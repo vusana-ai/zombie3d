@@ -1,6 +1,6 @@
 {
   "name": "좀비 웨이브 3D — 최후의 생존자",
-  "short_name": "좀비 웨이브 3D — 최후의 생존자",
+  "short_name": "좀비 웨이브 3D",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -8,10 +8,16 @@
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3408/3408506.png",
+      "src": "./icon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
