@@ -346,30 +346,24 @@ async function loadServer() {
   } catch {}
 }
 
-// Audio
-let audioCtx = null, bgmTimer = null, bgmStep = 0;
-const notes = [196, 247, 294, 392, 349, 294, 247, 220];
+// Audio (bgm.mp3 placed alongside index.html + Web Audio SFX)
+let audioCtx = null;
+const bgmAudio = new Audio('bgm.mp3');
+bgmAudio.loop = true;
+bgmAudio.volume = 0.45;
 function getAC() {
   if (!audioCtx) { const C = window.AudioContext || window.webkitAudioContext; if (C) audioCtx = new C(); }
   if (audioCtx?.state === 'suspended') audioCtx.resume().catch(() => {});
   return audioCtx;
 }
 function startBGM() {
-  stopBGM();
   if (!state.bgmEnabled) return;
-  const ctx = getAC(); if (!ctx) return;
-  bgmStep = 0;
-  bgmTimer = setInterval(() => {
-    if (!state.bgmEnabled || !audioCtx) return;
-    try {
-      const n = audioCtx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = 'sawtooth'; o.frequency.setValueAtTime(notes[bgmStep++ % notes.length], n);
-      g.gain.setValueAtTime(0.025, n); g.gain.exponentialRampToValueAtTime(0.0001, n + 0.16);
-      o.connect(g); g.connect(audioCtx.destination); o.start(n); o.stop(n + 0.18);
-    } catch {}
-  }, 200);
+  bgmAudio.play().catch(() => {});
 }
-function stopBGM() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
+function stopBGM() {
+  bgmAudio.pause();
+  bgmAudio.currentTime = 0;
+}
 function playSound(t) {
   if (!state.soundEnabled) return;
   const ctx = getAC(); if (!ctx) return;
@@ -434,6 +428,47 @@ for (const [x, z, sx, sz, sy] of interiorWalls) {
   const cap = new THREE.Mesh(new THREE.BoxGeometry(sx + 0.12, 0.14, sz + 0.12), wallTopMat);
   cap.position.set(x, sy + 0.07, z); scene.add(cap);
   obstacles.push({ x, z, halfW: sx / 2, halfD: sz / 2 });
+}
+
+let rescueNpc = null;
+function makeRescueNpc() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.38, .64, 5, 10), new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: .6 }));
+  body.position.y = .95; body.castShadow = true; g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.29, 14, 10), new THREE.MeshStandardMaterial({ color: 0xf2c9a5 }));
+  head.position.y = 1.65; head.castShadow = true; g.add(head);
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(.75, 1.05, 24),
+    new THREE.MeshBasicMaterial({ color: 0x34d399, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.04;
+  ring.name = 'beaconRing';
+  g.add(ring);
+  const marker = new THREE.Mesh(
+    new THREE.OctahedronGeometry(.28, 0),
+    new THREE.MeshBasicMaterial({ color: 0x6ee7b7 })
+  );
+  marker.position.y = 2.45;
+  marker.name = 'sosMarker';
+  g.add(marker);
+  return g;
+}
+
+function spawnRescueNpc() {
+  if (rescueNpc) return;
+  let rx = 0, rz = 0;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const cx = (Math.random() * 34) - 17;
+    const cz = (Math.random() * 34) - 17;
+    const hitObs = obstacles.some(o => Math.abs(cx - o.x) < o.halfW + 1.4 && Math.abs(cz - o.z) < o.halfD + 1.4);
+    const nearPlayer = Math.hypot(cx - player.position.x, cz - player.position.z) < 5;
+    if (!hitObs && !nearPlayer) { rx = cx; rz = cz; break; }
+  }
+  rescueNpc = makeRescueNpc();
+  rescueNpc.position.set(rx, 0, rz);
+  scene.add(rescueNpc);
+  showToast('🆘 맵 어딘가에 구조 대상자가 나타났습니다! (생명 +1)');
 }
 
 function resolveCircleBox(pos, radius, obs) {
@@ -543,17 +578,38 @@ window.addEventListener('resize', resize);
 resize();
 
 // Wave 1: half zombies; Wave 2+: 2x per wave
+function getFarSpawnPos() {
+  const candidates = [];
+  for (let i = 0; i < 24; i++) {
+    const edge = Math.floor(Math.random() * 4);
+    const pos = Math.random() * 38 - 19;
+    let sx = 0, sz = 0;
+    if (edge === 0) { sx = pos; sz = -19.2; }
+    else if (edge === 1) { sx = pos; sz = 19.2; }
+    else if (edge === 2) { sx = -19.2; sz = pos; }
+    else { sx = 19.2; sz = pos; }
+    candidates.push({ sx, sz, d: Math.hypot(sx - player.position.x, sz - player.position.z) });
+  }
+  candidates.sort((a, b) => b.d - a.d);
+  const farPool = candidates.filter(c => c.d >= 18);
+  const pool = farPool.length ? farPool : candidates.slice(0, 4);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function spawnZombiePack() {
   const cap = 360;
   if (zombies.length >= cap) return;
   const desiredPack = stage === 1 ? 2 : Math.min(24, 2 * Math.pow(2, stage - 1));
   const packSize = Math.min(cap - zombies.length, desiredPack);
-  const baseAngle = Math.random() * Math.PI * 2;
+  const base = getFarSpawnPos();
   for (let i = 0; i < packSize; i++) {
     const z = makeZombie();
-    const a = baseAngle + (Math.random() - 0.5) * 0.65;
-    const r = 17.5 + Math.random() * 2.5;
-    z.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+    let fx = THREE.MathUtils.clamp(base.sx + (Math.random() - 0.5) * 4.0, -19.4, 19.4);
+    let fz = THREE.MathUtils.clamp(base.sz + (Math.random() - 0.5) * 4.0, -19.4, 19.4);
+    if (Math.hypot(fx - player.position.x, fz - player.position.z) < 16) {
+      fx = base.sx; fz = base.sz;
+    }
+    z.position.set(fx, 0, fz);
     scene.add(z);
     zombies.push({
       mesh: z,
@@ -565,17 +621,19 @@ function spawnZombiePack() {
 }
 
 function spawnBossZombie() {
+  if (zombies.some(z => z.immortal)) return;
   const b = makeBossZombie();
-  const a = Math.random() * Math.PI * 2;
-  b.position.set(Math.cos(a) * 18, 0, Math.sin(a) * 18);
+  const pos = getFarSpawnPos();
+  b.position.set(pos.sx, 0, pos.sz);
   scene.add(b);
   zombies.push({
     mesh: b,
     isBoss: true,
-    hp: 20 + stage * 15,
-    speed: 1.05 + Math.min(1.2, stage * 0.08)
+    immortal: true,
+    hp: Infinity,
+    speed: 0.55
   });
-  showToast(`👹 WAVE ${stage} 보스 좀비 출현!`);
+  showToast('👹 죽지 않는 불사 보스 출현! (매우 느림 · 피해 도망치세요!)');
 }
 
 function clearActors() {
@@ -583,6 +641,7 @@ function clearActors() {
   zombies.length = 0;
   for (const b of bullets) scene.remove(b.mesh);
   bullets.length = 0;
+  if (rescueNpc) { scene.remove(rescueNpc); rescueNpc = null; }
 }
 
 function startGame() {
@@ -663,9 +722,14 @@ function useGrenade() {
 
   state.grenades--;
   playSound('boom');
-  const killed = zombies.length;
-  for (const z of zombies) scene.remove(z.mesh);
-  zombies.length = 0;
+  let killed = 0;
+  for (let i = zombies.length - 1; i >= 0; i--) {
+    if (!zombies[i].immortal) {
+      scene.remove(zombies[i].mesh);
+      zombies.splice(i, 1);
+      killed++;
+    }
+  }
 
   if (killed > 0) {
     distance += killed;
@@ -753,6 +817,7 @@ function animate() {
       if (stage > state.bestWave) state.bestWave = stage;
       saveState(false);
       showToast(`🌊 WAVE ${stage} 시작! (1분 생존 성공!)`);
+      spawnRescueNpc();
       spawnBossZombie();
     }
 
@@ -761,6 +826,32 @@ function animate() {
       player.position.x += (move.x - player.position.x) * Math.min(1, dt * 5);
       player.position.z += (move.z - player.position.z) * Math.min(1, dt * 5);
       for (const obs of obstacles) resolveCircleBox(player.position, 0.55, obs);
+    }
+
+    // Random survivor rescue (+1 life, max 5)
+    if (rescueNpc) {
+      const marker = rescueNpc.getObjectByName('sosMarker');
+      const ring = rescueNpc.getObjectByName('beaconRing');
+      if (marker) {
+        marker.rotation.y += dt * 3;
+        marker.position.y = 2.45 + Math.sin(clock.elapsedTime * 4) * 0.15;
+      }
+      if (ring) {
+        const s = 1 + Math.sin(clock.elapsedTime * 4) * 0.12;
+        ring.scale.set(s, s, 1);
+      }
+      if (player.position.distanceTo(rescueNpc.position) < 1.8) {
+        scene.remove(rescueNpc);
+        rescueNpc = null;
+        if (lives < 5) {
+          lives = Math.min(5, lives + 1);
+          showToast(`🆘 생존자 구조! 생명 +1 (현재 ${lives}/5)`);
+        } else {
+          showToast('🆘 생존자 구조! (최대 생명 5개)');
+        }
+        playSound('coin');
+        updateUILive();
+      }
     }
 
     // Zombie Horde Spawner (Wave 1 easier, Wave 2+ scales 2x)
@@ -772,14 +863,21 @@ function animate() {
         : Math.max(0.14, 0.34 - (stage - 1) * 0.025) * (0.8 + Math.random() * 0.4);
     }
 
-    // Auto-fire equipped weapon
+    // Auto-fire equipped weapon (prioritize killable zombies over immortal boss)
     const w = getWeapon();
     shootT -= dt;
     if (shootT <= 0 && zombies.length) {
       let nearest = null, nd = Infinity;
       for (const z of zombies) {
+        if (z.immortal) continue;
         const d = player.position.distanceTo(z.mesh.position);
         if (d < nd) { nd = d; nearest = z; }
+      }
+      if (!nearest) {
+        for (const z of zombies) {
+          const d = player.position.distanceTo(z.mesh.position);
+          if (d < nd) { nd = d; nearest = z; }
+        }
       }
       const maxRange = w.id === 'flamethrower' ? 10.5 : 26;
       if (nearest && nd < maxRange) {
@@ -817,8 +915,8 @@ function animate() {
         const dz = b.mesh.position.z - z.mesh.position.z;
         const hitR = (b.pierce ? 0.95 : 0.72) + (z.isBoss ? 0.65 : 0);
         if (dx * dx + dz * dz < hitR * hitR) {
-          z.hp -= b.dmg;
-          if (z.hp <= 0) {
+          if (!z.immortal) z.hp -= b.dmg;
+          if (!z.immortal && z.hp <= 0) {
             scene.remove(z.mesh);
             zombies.splice(j, 1);
             if (z.isBoss) {
@@ -857,8 +955,13 @@ function animate() {
       z.mesh.rotation.y = Math.atan2(dx, -dz);
       z.mesh.position.y = Math.sin(clock.elapsedTime * 5 + i) * 0.035;
       if (d < (z.isBoss ? 1.45 : 1.0)) {
-        scene.remove(z.mesh);
-        zombies.splice(i, 1);
+        if (z.immortal) {
+          const pos = getFarSpawnPos();
+          z.mesh.position.set(pos.sx, 0, pos.sz);
+        } else {
+          scene.remove(z.mesh);
+          zombies.splice(i, 1);
+        }
         takeDamage();
         if (!running) break;
       }
