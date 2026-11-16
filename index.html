@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="theme-color" content="#0a0f1a"/>
 <title>좀비 웨이브 3D — 최후의 생존자</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -13,7 +13,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highlight-color:transparent;background:#0a0f1a;color:#e2e8f0;overflow-x:hidden}
+html,body{margin:0;padding:0;overflow-x:hidden;max-width:100%}
+body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highlight-color:transparent;background:#0a0f1a;color:#e2e8f0}
+#viewport-wrap{height:min(54vh,520px);height:min(54dvh,520px);min-height:290px}
 #gameCanvas{display:block;width:100%;height:100%;touch-action:none}
 .vip-btn-glow{animation:vp 2.2s infinite ease-in-out}
 @keyframes vp{0%,100%{box-shadow:0 0 8px rgba(168,85,247,.45)}50%{box-shadow:0 0 15px rgba(232,121,249,.8)}}
@@ -21,7 +23,7 @@ body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap
 .bomb-pop{animation:bombPop 1.05s ease-out forwards}
 </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-[100dvh] flex flex-col">
 <header class="border-b border-slate-800/80 bg-slate-900/95 backdrop-blur px-3 sm:px-4 py-2 sticky top-0 z-30">
 <div class="max-w-5xl mx-auto flex flex-col gap-1.5">
 <div class="flex flex-wrap items-center justify-between gap-2">
@@ -64,9 +66,9 @@ body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap
 </section>
 
 <!-- 3D viewport -->
-<section class="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl shadow-black/50 bg-black" style="height:min(58vh,520px)">
+<section id="viewport-wrap" class="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl shadow-black/50 bg-black">
 <div id="viewport" class="absolute inset-0"></div>
-<div id="gameOverlay" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+<div id="gameOverlay" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-sm flex flex-col items-center justify-center gap-3 p-4">
 <div id="overlayTitle" class="text-2xl font-black text-orange-400 tracking-tight">좀비 웨이브 3D</div>
 <p id="overlaySub" class="text-xs text-slate-300 text-center px-6 max-w-sm">1분마다 다음 웨이브로! 벽을 엄폐물 삼아 몰려오는 좀비 떼를 처치하세요.</p>
 <button id="overlayActionBtn" type="button" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-500 text-slate-950 font-black text-sm cursor-pointer shadow-lg">생존 시작</button>
@@ -104,15 +106,15 @@ body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap
 </div>
 
 <!-- VIP Grenade Quick Use Button -->
-<button id="grenadeUseBtn" type="button" class="absolute right-2.5 bottom-9 z-10 px-3 py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-rose-600 hover:from-fuchsia-500 hover:to-rose-500 text-white border border-amber-300/80 shadow-lg text-xs font-black flex items-center gap-1.5 cursor-pointer active:scale-95 transition">
+<button id="grenadeUseBtn" type="button" class="absolute right-2 bottom-8 sm:right-2.5 sm:bottom-9 z-10 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-rose-600 hover:from-fuchsia-500 hover:to-rose-500 text-white border border-amber-300/80 shadow-lg text-[11px] sm:text-xs font-black flex items-center gap-1.5 cursor-pointer active:scale-95 transition">
 <span>💣</span>
 <span id="grenadeBtnLabel">수류탄 (0)</span>
 <kbd class="px-1 py-0.5 rounded bg-black/35 text-[9px]">G</kbd>
 </button>
 
 <!-- touch zones hint -->
-<div class="absolute bottom-2 left-0 right-0 z-10 pointer-events-none flex justify-center">
-<div class="text-[10px] text-white/50 bg-black/40 px-3 py-1 rounded-full">WASD / 방향키 이동 · 자동 사격 · G 수류탄(VIP)</div>
+<div class="absolute bottom-1.5 left-0 right-0 z-10 pointer-events-none flex justify-center px-2">
+<div class="text-[9px] sm:text-[10px] text-white/60 bg-black/45 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full truncate max-w-full">터치 드래그/방향키 이동 · 자동 사격 · G 수류탄</div>
 </div>
 </section>
 
@@ -154,7 +156,7 @@ body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap
 </div>
 
 <div id="vipModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
-<div class="bg-slate-900 border border-purple-500/50 rounded-2xl max-w-md w-full p-5">
+<div class="bg-slate-900 border border-purple-500/50 rounded-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-5">
 <div class="flex justify-between mb-3"><h2 class="font-black text-amber-300">👑 VIP 7,000원</h2><button id="vipCloseBtn" type="button" class="cursor-pointer text-slate-400">✕</button></div>
 <ul class="text-xs text-slate-300 space-y-1 mb-3"><li>❤️ 체력 3개 &amp; 웨이브 생존 강화</li><li>🪙 좀비 처치 골드 25G (기본 10G)</li><li>💣 VIP 전용 수류탄 1개 기본 지급 &amp; 구매 가능 (전체 좀비 일소)</li></ul>
 <div id="tossWidgetLoading" class="text-xs text-center text-slate-500 py-3">결제 로딩...</div>
@@ -165,7 +167,7 @@ body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap
 
 <!-- 용사 키우기 동일 양식 로그인/회원가입 모달 -->
 <div id="authModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-<div class="bg-slate-900 border border-amber-500/40 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+<div class="bg-slate-900 border border-amber-500/40 rounded-2xl max-w-sm w-full max-h-[90dvh] overflow-y-auto p-5 shadow-2xl">
 <div class="flex items-center justify-between mb-2">
 <div class="flex items-center gap-2">
 <span class="text-lg">🟨</span>
@@ -390,6 +392,7 @@ const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
 camera.position.set(0, 19, 17);
 camera.lookAt(0, 0, 0);
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.domElement.id = 'gameCanvas';
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -613,11 +616,23 @@ const keys = {}; const move = { x: 0, z: 0 };
 function resize() {
   const w = viewport.clientWidth, h = viewport.clientHeight;
   if (!w || !h) return;
+  const aspect = w / h;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
   renderer.setSize(w, h, false);
-  camera.aspect = w / h;
+  camera.aspect = aspect;
+  const baseFov = 48;
+  if (aspect < 1.2) {
+    const hFovRad = THREE.MathUtils.degToRad(62);
+    const vFovRad = 2 * Math.atan(Math.tan(hFovRad / 2) / Math.max(aspect, 0.55));
+    camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(vFovRad), baseFov, 78);
+  } else {
+    camera.fov = baseFov;
+  }
   camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 120));
+if (typeof ResizeObserver !== 'undefined') new ResizeObserver(resize).observe(viewport);
 resize();
 
 // Wave 1: half zombies; Wave 2+: 2x per wave
