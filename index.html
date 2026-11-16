@@ -183,12 +183,12 @@ body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap
 <label class="block text-[11px] font-bold text-slate-300 mb-1.5">아이디 (휴대폰 번호 뒷 8자리)</label>
 <div class="flex items-center rounded-xl bg-slate-950 border border-slate-700 focus-within:border-amber-400 overflow-hidden">
 <span class="px-3 py-2.5 bg-slate-900 text-amber-300 font-extrabold text-sm border-r border-slate-800 select-none">010 -</span>
-<input id="authPhoneDigits" type="tel" inputmode="numeric" maxlength="9" required placeholder="1234-5678 (숫자 8자리)" class="w-full px-3 py-2.5 bg-transparent text-sm font-bold tracking-wider text-slate-100 focus:outline-none"/>
+<input id="authPhoneDigits" type="tel" inputmode="numeric" maxlength="9" autocomplete="off" required placeholder="1234-5678 (숫자 8자리)" class="w-full px-3 py-2.5 bg-transparent text-sm font-bold tracking-wider text-slate-100 focus:outline-none"/>
 </div>
 </div>
 <div>
 <label class="block text-[11px] font-bold text-slate-300 mb-1.5">비밀번호 (숫자 4자리)</label>
-<input id="authPinCode" type="password" inputmode="numeric" maxlength="4" pattern="\d{4}" required placeholder="숫자 4자리 입력 (예: 1234)" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm font-bold tracking-[0.35em] text-slate-100 focus:outline-none focus:border-amber-400"/>
+<input id="authPinCode" type="password" inputmode="numeric" maxlength="4" pattern="\d{4}" autocomplete="off" required placeholder="숫자 4자리 입력 (예: 1234)" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm font-bold tracking-[0.35em] text-slate-100 focus:outline-none focus:border-amber-400"/>
 </div>
 <div id="authErrorMsg" class="hidden text-xs text-rose-400 font-semibold bg-rose-950/40 border border-rose-800/50 rounded-lg px-3 py-2"></div>
 <button id="authSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition mt-0.5 cursor-pointer">로그인 및 서버저장 연동</button>
@@ -230,8 +230,40 @@ const WEAPONS = [
 ];
 const GRENADE_COST = 500;
 
-let authToken = localStorage.getItem(TOKEN_KEY);
-let currentUsername = localStorage.getItem(USER_KEY);
+function maskPrivacyInfo(value) {
+  if (value === null || value === undefined) return '익명';
+  let s = String(value).trim();
+  if (!s) return '익명';
+  // 휴대폰/전화번호 형태(하이픈·공백·점 포함 또는 숫자만) 중간 번호 마스킹
+  s = s.replace(/(01\d|0\d{1,2})[-.\s]?([\d*]{3,4})[-.\s]?(\d{4})/g, (_, p1, p2, p3) => {
+    return `${p1}-${'*'.repeat(p2.length)}-${p3}`;
+  });
+  // 앞자리(010 등) 없이 뒷 8자리만 있는 경우 (예: 1234-5678 또는 12345678)
+  s = s.replace(/^([\d*]{4})[-.\s]?(\d{4})$/, (_, p1, p2) => `****-${p2}`);
+  // 이메일 형태 마스킹
+  s = s.replace(/([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, (_, localPart, domain) => {
+    const visible = localPart.slice(0, Math.min(2, localPart.length));
+    return `${visible}${'*'.repeat(Math.max(3, localPart.length - visible.length))}@${domain}`;
+  });
+  return s;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
+let authToken = null;
+let currentUsername = null;
+try {
+  authToken = localStorage.getItem(TOKEN_KEY);
+  const rawStoredUser = localStorage.getItem(USER_KEY);
+  currentUsername = rawStoredUser ? maskPrivacyInfo(rawStoredUser) : null;
+  if (rawStoredUser && currentUsername !== rawStoredUser) {
+    localStorage.setItem(USER_KEY, currentUsername);
+  }
+} catch {}
 let isRegisterMode = false;
 
 const defState = () => ({
@@ -944,7 +976,7 @@ function updateUI() {
   const b = document.getElementById('userBadge'), s = document.getElementById('syncStatusText');
   const sl = document.getElementById('serverSaveBtnLabel'), lo = document.getElementById('logoutBtn');
   if (authToken && currentUsername) {
-    b.textContent = '📱 ' + currentUsername + (state.isVip ? ' 👑' : '');
+    b.textContent = '📱 ' + maskPrivacyInfo(currentUsername) + (state.isVip ? ' 👑' : '');
     b.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/40 text-emerald-300';
     s.textContent = '클라우드 연동 중'; sl.textContent = '서버저장'; lo.classList.remove('hidden');
   } else {
@@ -984,7 +1016,8 @@ async function fetchRank() {
       const wv = it.bestWave ?? it.saveData?.bestWave ?? (it.isMe ? state.bestWave : 1);
       const r = document.createElement('div');
       r.className = 'rounded-lg px-3 py-1.5 border bg-slate-950 border-slate-800 flex justify-between items-center text-[11px]' + (it.isMe ? ' ring-1 ring-sky-400' : '');
-      r.innerHTML = '<span class="font-bold">' + it.rank + '. ' + it.maskedName + (it.isMe ? ' <span class="text-sky-300 text-[10px]">(나)</span>' : '') + ' <span class="text-slate-400 text-[10px]">· WAVE ' + wv + '</span></span><span class="font-black text-orange-400">' + (it.score || 0).toLocaleString() + ' 킬</span>';
+      const safeMaskedName = escapeHtml(maskPrivacyInfo(it.maskedName || it.username || it.name || '익명'));
+      r.innerHTML = '<span class="font-bold">' + it.rank + '. ' + safeMaskedName + (it.isMe ? ' <span class="text-sky-300 text-[10px]">(나)</span>' : '') + ' <span class="text-slate-400 text-[10px]">· WAVE ' + wv + '</span></span><span class="font-black text-orange-400">' + (it.score || 0).toLocaleString() + ' 킬</span>';
       box.appendChild(r);
     });
   } catch { box.innerHTML = '<div class="text-center text-[11px] text-slate-500 py-3">랭킹 대기 중</div>'; }
@@ -1030,7 +1063,7 @@ document.getElementById('serverSaveGoldBtn').onclick = () => {
   if (authToken) syncSave(true);
   else { setAuthMode(false); authM.classList.remove('hidden'); authM.classList.add('flex'); setTimeout(() => phone.focus(), 50); }
 };
-document.getElementById('authCloseBtn').onclick = () => { authM.classList.add('hidden'); authM.classList.remove('flex'); };
+document.getElementById('authCloseBtn').onclick = () => { phone.value = ''; pin.value = ''; authM.classList.add('hidden'); authM.classList.remove('flex'); };
 document.getElementById('modeLoginBtn').onclick = () => setAuthMode(false);
 document.getElementById('modeRegisterBtn').onclick = () => setAuthMode(true);
 phone.oninput = e => { const d = e.target.value.replace(/\D/g, '').slice(0, 8); e.target.value = d.length > 4 ? d.slice(0, 4) + '-' + d.slice(4) : d; };
@@ -1056,8 +1089,12 @@ document.getElementById('authForm').onsubmit = async e => {
     });
     const d = await res.json();
     if (!res.ok) { errEl.textContent = d.error || '로그인/가입 처리 중 오류가 발생했습니다.'; errEl.classList.remove('hidden'); return; }
-    authToken = d.token; currentUsername = d.username;
-    localStorage.setItem(TOKEN_KEY, authToken); localStorage.setItem(USER_KEY, currentUsername);
+    authToken = d.token;
+    currentUsername = maskPrivacyInfo(d.username || id);
+    try {
+      localStorage.setItem(TOKEN_KEY, authToken);
+      localStorage.setItem(USER_KEY, currentUsername);
+    } catch {}
 
     if (!isRegisterMode) {
       if (d.saveData) {
@@ -1076,9 +1113,11 @@ document.getElementById('authForm').onsubmit = async e => {
     }
 
     authM.classList.add('hidden'); authM.classList.remove('flex');
+    phone.value = '';
     pin.value = '';
     updateUI(); fetchRank();
-    showToast(isRegisterMode ? `🟨 [${currentUsername}] 가입 완료!` : `🟨 [${currentUsername}] 로그인 완료!`);
+    const maskedUser = maskPrivacyInfo(currentUsername);
+    showToast(isRegisterMode ? `🟨 [${maskedUser}] 가입 완료!` : `🟨 [${maskedUser}] 로그인 완료!`);
   } catch {
     errEl.textContent = '클라우드 게임 서버와 연결할 수 없습니다.';
     errEl.classList.remove('hidden');
