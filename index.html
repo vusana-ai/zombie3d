@@ -156,7 +156,7 @@ body{margin:0;font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap
 <div id="vipModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
 <div class="bg-slate-900 border border-purple-500/50 rounded-2xl max-w-md w-full p-5">
 <div class="flex justify-between mb-3"><h2 class="font-black text-amber-300">👑 VIP 7,000원</h2><button id="vipCloseBtn" type="button" class="cursor-pointer text-slate-400">✕</button></div>
-<ul class="text-xs text-slate-300 space-y-1 mb-3"><li>❤️ 체력 3개 &amp; 웨이브 생존 강화</li><li>🪙 좀비 처치 골드 25G (기본 10G)</li><li>💣 VIP 전용 수류탄 구매 가능 (전체 좀비 일소)</li></ul>
+<ul class="text-xs text-slate-300 space-y-1 mb-3"><li>❤️ 체력 3개 &amp; 웨이브 생존 강화</li><li>🪙 좀비 처치 골드 25G (기본 10G)</li><li>💣 VIP 전용 수류탄 1개 기본 지급 &amp; 구매 가능 (전체 좀비 일소)</li></ul>
 <div id="tossWidgetLoading" class="text-xs text-center text-slate-500 py-3">결제 로딩...</div>
 <div id="toss-payment-method"></div><div id="toss-agreement"></div>
 <button id="vipPaySubmitBtn" type="button" disabled class="w-full mt-3 py-3 rounded-xl bg-amber-400 text-slate-950 font-black disabled:bg-slate-700 cursor-pointer">결제</button>
@@ -228,7 +228,7 @@ const WEAPONS = [
   { id: 'mg', name: '기관총', icon: '🧨', cost: 1500, fireRate: 0.085, dmg: 1, speed: 30, pellets: 1, spread: 0.08, color: 0x38bdf8, desc: '초고속 연사 · 몰려오는 좀비 제압' },
   { id: 'flamethrower', name: '화염방사기', icon: '🔥', cost: 5000, fireRate: 0.11, dmg: 2, speed: 16, pellets: 5, spread: 0.32, color: 0xf97316, life: 0.48, desc: '부채꼴 화염 · 다수 좀비 동시 소각' }
 ];
-const GRENADE_COST = 500;
+const GRENADE_COST = 10000;
 
 function maskPrivacyInfo(value) {
   if (value === null || value === undefined) return '익명';
@@ -275,7 +275,8 @@ const defState = () => ({
   isVip: false,
   ownedWeapons: ['pistol'],
   equippedWeapon: 'pistol',
-  grenades: 0
+  grenades: 0,
+  vipGrenadeClaimed: false
 });
 function sanitize(p) {
   const b = defState();
@@ -283,16 +284,24 @@ function sanitize(p) {
   const owned = Array.isArray(p.ownedWeapons) && p.ownedWeapons.length ? p.ownedWeapons.filter(id => WEAPONS.some(w => w.id === id)) : ['pistol'];
   if (!owned.includes('pistol')) owned.unshift('pistol');
   const eq = owned.includes(p.equippedWeapon) ? p.equippedWeapon : 'pistol';
+  const isVipVal = !!p.isVip;
+  let grenadesVal = typeof p.grenades === 'number' && p.grenades >= 0 ? Math.floor(p.grenades) : 0;
+  let vipGrenadeClaimedVal = !!p.vipGrenadeClaimed;
+  if (isVipVal && !vipGrenadeClaimedVal) {
+    grenadesVal = Math.max(1, grenadesVal + 1);
+    vipGrenadeClaimedVal = true;
+  }
   return {
     highScore: typeof p.highScore === 'number' && p.highScore >= 0 ? Math.floor(p.highScore) : 0,
     bestWave: typeof p.bestWave === 'number' && p.bestWave >= 1 ? Math.floor(p.bestWave) : 1,
     gold: typeof p.gold === 'number' && p.gold >= 0 ? Math.floor(p.gold) : 200,
     soundEnabled: typeof p.soundEnabled === 'boolean' ? p.soundEnabled : true,
     bgmEnabled: typeof p.bgmEnabled === 'boolean' ? p.bgmEnabled : true,
-    isVip: !!p.isVip,
+    isVip: isVipVal,
     ownedWeapons: owned,
     equippedWeapon: eq,
-    grenades: typeof p.grenades === 'number' && p.grenades >= 0 ? Math.floor(p.grenades) : 0
+    grenades: grenadesVal,
+    vipGrenadeClaimed: vipGrenadeClaimedVal
   };
 }
 let state = (() => { try { const r = localStorage.getItem(STORAGE); return r ? sanitize(JSON.parse(r)) : defState(); } catch { return defState(); } })();
@@ -328,8 +337,10 @@ async function loadServer() {
     if (res.status === 401 || res.status === 403) { handleLogout(true); return; }
     const d = await res.json();
     if (res.ok && d.saveData) {
+      const hadClaimed = !!d.saveData.vipGrenadeClaimed;
       state = sanitize({ ...d.saveData, isVip: !!(d.isVip || d.saveData?.isVip) });
       localStorage.setItem(STORAGE, JSON.stringify(state));
+      if (state.isVip && !hadClaimed) syncSave(false);
       updateUI();
     }
   } catch {}
@@ -943,7 +954,7 @@ function renderWeaponShop() {
       <span class="text-xs font-black text-white">💣 수류탄</span>
       <span class="text-[10px] font-black px-1.5 py-0.5 rounded ${
         state.isVip ? 'bg-fuchsia-500/25 text-fuchsia-200' : 'bg-amber-500/20 text-amber-300'
-      }">${state.isVip ? GRENADE_COST + 'G · 보유 ' + state.grenades : '🔒 VIP 전용'}</span>
+      }">${state.isVip ? GRENADE_COST.toLocaleString() + 'G · 보유 ' + state.grenades : '🔒 VIP 전용'}</span>
     </div>
     <div class="text-[10px] text-slate-400 leading-tight">화면 폭발 &amp; 전체 좀비 즉시 제거 (G키)</div>
   `;
@@ -960,7 +971,7 @@ function renderWeaponShop() {
       playSound('coin');
       showToast(`💣 수류탄 1개 구매 완료! (보유: ${state.grenades}개)`);
     } else {
-      showToast(`골드가 부족합니다! (${GRENADE_COST}G 필요)`);
+      showToast(`골드가 부족합니다! (${GRENADE_COST.toLocaleString()}G 필요)`);
     }
   };
   grid.appendChild(gBtn);
