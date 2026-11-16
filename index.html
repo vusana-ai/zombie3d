@@ -554,6 +554,49 @@ function makeBossZombie() {
   return g;
 }
 
+const reaperCloakMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
+const reaperHoodMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
+const reaperEyeMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+const scythePoleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.7, roughness: 0.35 });
+const scytheBladeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.88, roughness: 0.18, emissive: 0x3b0764, emissiveIntensity: 0.25 });
+function makeImmortalZombie() {
+  const g = new THREE.Group();
+  // Tattered dark reaper robe
+  const robe = new THREE.Mesh(new THREE.CylinderGeometry(.28, .62, 1.38, 10), reaperCloakMat);
+  robe.position.y = .72; robe.castShadow = true; g.add(robe);
+  // Shadowy skull & pointed hood
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(.26, 12, 10), new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 1 }));
+  skull.position.y = 1.62; g.add(skull);
+  const hood = new THREE.Mesh(new THREE.ConeGeometry(.42, .68, 10), reaperHoodMat);
+  hood.position.set(0, 1.78, .04); hood.rotation.x = .22; hood.castShadow = true; g.add(hood);
+  for (const x of [-.09, .09]) {
+    const eye = new THREE.Mesh(zEyeGeo, reaperEyeMat);
+    eye.position.set(x, 1.62, -.23); g.add(eye);
+  }
+  // Arms
+  const leftArm = new THREE.Mesh(zArmGeo, reaperCloakMat);
+  leftArm.position.set(-.42, 1.05, -.1); leftArm.rotation.z = -.45; g.add(leftArm);
+  const rightArm = new THREE.Mesh(zArmGeo, reaperCloakMat);
+  rightArm.position.set(.44, 1.08, -.22); rightArm.rotation.x = -.65; g.add(rightArm);
+
+  // Long Grim Reaper Scythe held in right hand
+  const scythe = new THREE.Group();
+  scythe.position.set(.52, 1.15, -.35);
+  scythe.rotation.x = .28;
+  scythe.rotation.z = -.08;
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(.04, .045, 2.75, 8), scythePoleMat);
+  pole.position.y = .2; pole.castShadow = true; scythe.add(pole);
+  const bladeBase = new THREE.Mesh(new THREE.BoxGeometry(.07, .14, .88), scytheBladeMat);
+  bladeBase.position.set(0, 1.48, -.42); bladeBase.rotation.x = .15; bladeBase.castShadow = true; scythe.add(bladeBase);
+  const bladeTip = new THREE.Mesh(new THREE.ConeGeometry(.075, .62, 4), scytheBladeMat);
+  bladeTip.position.set(0, 1.24, -.92); bladeTip.rotation.x = -Math.PI * 0.68; bladeTip.castShadow = true; scythe.add(bladeTip);
+  scythe.name = 'reaperScythe';
+  g.add(scythe);
+
+  g.scale.set(1.75, 1.75, 1.75);
+  return g;
+}
+
 const bGeo = new THREE.SphereGeometry(.14, 6, 6);
 const fGeo = new THREE.SphereGeometry(.26, 6, 6);
 const bulletMats = {
@@ -621,19 +664,35 @@ function spawnZombiePack() {
 }
 
 function spawnBossZombie() {
-  if (zombies.some(z => z.immortal)) return;
   const b = makeBossZombie();
   const pos = getFarSpawnPos();
   b.position.set(pos.sx, 0, pos.sz);
   scene.add(b);
+  const normalHp = 1 + Math.floor((stage - 1) / 2);
   zombies.push({
     mesh: b,
     isBoss: true,
+    immortal: false,
+    hp: normalHp * 1000,
+    speed: 1.05 + Math.min(1.2, stage * 0.08)
+  });
+  showToast(`👹 WAVE ${stage} 보스 좀비 출현!`);
+}
+
+function spawnImmortalZombie() {
+  if (zombies.some(z => z.immortal)) return;
+  const im = makeImmortalZombie();
+  const pos = getFarSpawnPos();
+  im.position.set(pos.sx, 0, pos.sz);
+  scene.add(im);
+  zombies.push({
+    mesh: im,
+    isBoss: false,
     immortal: true,
     hp: Infinity,
     speed: 0.55
   });
-  showToast('👹 죽지 않는 불사 보스 출현! (매우 느림 · 피해 도망치세요!)');
+  showToast('🛡️ 죽지 않는 불사 좀비 출현! (매우 느림 · 피해 도망치세요!)');
 }
 
 function clearActors() {
@@ -819,6 +878,7 @@ function animate() {
       showToast(`🌊 WAVE ${stage} 시작! (1분 생존 성공!)`);
       spawnRescueNpc();
       spawnBossZombie();
+      spawnImmortalZombie();
     }
 
     movePlayer(dt);
@@ -913,7 +973,7 @@ function animate() {
         const z = zombies[j];
         const dx = b.mesh.position.x - z.mesh.position.x;
         const dz = b.mesh.position.z - z.mesh.position.z;
-        const hitR = (b.pierce ? 0.95 : 0.72) + (z.isBoss ? 0.65 : 0);
+        const hitR = (b.pierce ? 0.95 : 0.72) + (z.isBoss ? 0.65 : z.immortal ? 0.45 : 0);
         if (dx * dx + dz * dz < hitR * hitR) {
           if (!z.immortal) z.hp -= b.dmg;
           if (!z.immortal && z.hp <= 0) {
@@ -951,10 +1011,14 @@ function animate() {
       const d = Math.hypot(dx, dz) || 1;
       z.mesh.position.x += (dx / d) * z.speed * dt;
       z.mesh.position.z += (dz / d) * z.speed * dt;
-      for (const obs of obstacles) resolveCircleBox(z.mesh.position, z.isBoss ? 0.95 : 0.42, obs);
+      for (const obs of obstacles) resolveCircleBox(z.mesh.position, z.isBoss ? 0.95 : z.immortal ? 0.75 : 0.42, obs);
       z.mesh.rotation.y = Math.atan2(dx, -dz);
       z.mesh.position.y = Math.sin(clock.elapsedTime * 5 + i) * 0.035;
-      if (d < (z.isBoss ? 1.45 : 1.0)) {
+      if (z.immortal) {
+        const scythe = z.mesh.getObjectByName('reaperScythe');
+        if (scythe) scythe.rotation.x = 0.28 + Math.sin(clock.elapsedTime * 2.4) * 0.14;
+      }
+      if (d < (z.isBoss ? 1.45 : z.immortal ? 1.25 : 1.0)) {
         if (z.immortal) {
           const pos = getFarSpawnPos();
           z.mesh.position.set(pos.sx, 0, pos.sz);
