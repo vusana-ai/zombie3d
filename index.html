@@ -4,6 +4,9 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="theme-color" content="#0a0f1a"/>
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" type="image/png" href="./icon.png" />
+<link rel="apple-touch-icon" href="./icon.png" />
 <title>좀비 웨이브 3D — 최후의 생존자</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
@@ -29,18 +32,17 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <div class="flex flex-wrap items-center justify-between gap-2">
 <div class="flex items-center gap-2 flex-wrap min-w-0">
 <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500/30 to-rose-600/30 border border-orange-400/40 flex items-center justify-center text-sm">🧟</span>
-<h1 class="text-sm font-extrabold tracking-tight">좀비 웨이브 <span class="text-lime-400">3D</span></h1>
+<h1 class="text-sm font-extrabold tracking-tight">좀비 웨이브 <span class="text-lime-400">3D</span>[cite: 2]</h1>
 <span id="userBadge" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-300">👤 게스트</span>
 <button id="vipOpenBtn" type="button" class="vip-btn-glow px-2 py-0.5 rounded-md text-[10px] font-black bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white border border-amber-300/70 cursor-pointer">👑 <span id="vipHeaderBtnLabel">VIP</span></button>
 </div>
 <div class="flex items-center gap-1.5">
-<div class="px-2 py-1 rounded-lg text-xs font-extrabold bg-amber-500/15 border border-amber-500/40 text-amber-300">🪙 <span id="goldDisplay">0</span>G</div>
 <button id="serverSaveGoldBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-black bg-gradient-to-b from-amber-300 to-amber-600 text-slate-950 cursor-pointer"><span id="serverSaveBtnLabel">로그인</span></button>
-<button id="logoutBtn" type="button" class="hidden px-2 py-1 rounded-lg text-xs bg-slate-800 border border-slate-700 cursor-pointer">로그아웃</button>
+<button id="logoutBtn" type="button" class="hidden px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 cursor-pointer">로그아웃</button>
 </div>
 </div>
 <div class="flex items-center justify-between gap-2 text-[11px] border-t border-slate-800/60 pt-1.5">
-<p id="syncStatusText" class="text-slate-400 truncate">로그인으로 전적 영구 저장</p>
+<p id="syncStatusText" class="text-slate-400 truncate">로그인으로 전적 영구 저장[cite: 2]</p>
 <div class="flex gap-1 shrink-0">
 <button id="bgmToggleBtn" type="button" class="px-2 py-1 rounded-md bg-indigo-950/80 border border-indigo-700/50 cursor-pointer">🎵</button>
 <button id="soundToggleBtn" type="button" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 cursor-pointer">🔊</button>
@@ -51,27 +53,28 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 </header>
 
 <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-3 flex flex-col gap-3">
-<!-- Status bar -->
-<section class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+<!-- Status bar (최고 처치 다음에 골드 배치) -->
+<section class="grid grid-cols-2 sm:grid-cols-6 gap-2">
 <div class="col-span-2 sm:col-span-2 bg-slate-900/90 border border-orange-500/30 rounded-xl px-3 py-2 flex items-center justify-between">
 <div>
-<div class="text-[10px] text-orange-300/80 font-bold">WAVE <span id="scoreBadge">1</span> · <span id="waveTimerText" class="tabular-nums">00:00 / 01:00</span></div>
-<div id="scoreDisplay" class="text-base sm:text-lg font-black text-orange-400">0 킬</div>
+<div class="text-[10px] text-orange-300/80 font-bold">WAVE <span id="scoreBadge">1</span> · <span id="waveTimerText" class="tabular-nums">00:00 / 01:00</span>[cite: 2]</div>
+<div id="scoreDisplay" class="text-base sm:text-lg font-black text-orange-400">0 킬[cite: 2]</div>
 </div>
-<button id="startGameBtn" type="button" class="px-3 py-2 rounded-lg text-xs font-black bg-gradient-to-r from-orange-500 to-rose-600 text-slate-950 cursor-pointer active:scale-95 transition">생존 시작</button>
+<button id="startGameBtn" type="button" class="px-3 py-2 rounded-lg text-xs font-black bg-gradient-to-r from-orange-500 to-rose-600 text-slate-950 cursor-pointer active:scale-95 transition">생존 시작[cite: 2]</button>
 </div>
-<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">체력</div><div id="livesDisplay" class="text-sm font-bold text-rose-400">❤️❤️</div></div>
-<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">주변 좀비</div><div id="speedDisplay" class="text-sm font-extrabold text-cyan-300 tabular-nums">대기</div></div>
-<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">최고 처치</div><div id="highScoreDisplay" class="text-sm font-bold text-amber-300">0 킬</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">체력[cite: 2]</div><div id="livesDisplay" class="text-sm font-bold text-rose-400">❤️❤️[cite: 2]</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">주변 좀비[cite: 2]</div><div id="speedDisplay" class="text-sm font-extrabold text-cyan-300 tabular-nums">대기[cite: 2]</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">최고 처치[cite: 2]</div><div id="highScoreDisplay" class="text-sm font-bold text-amber-300">0 킬[cite: 2]</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">보유 골드</div><div id="goldDisplay" class="text-sm font-black text-amber-400">0G</div></div>
 </section>
 
 <!-- 3D viewport -->
 <section id="viewport-wrap" class="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl shadow-black/50 bg-black">
 <div id="viewport" class="absolute inset-0"></div>
 <div id="gameOverlay" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-sm flex flex-col items-center justify-center gap-3 p-4">
-<div id="overlayTitle" class="text-2xl font-black text-orange-400 tracking-tight">좀비 웨이브 3D</div>
-<p id="overlaySub" class="text-xs text-slate-300 text-center px-6 max-w-sm">1분마다 다음 웨이브로! 벽을 엄폐물 삼아 몰려오는 좀비 떼를 처치하세요.</p>
-<button id="overlayActionBtn" type="button" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-500 text-slate-950 font-black text-sm cursor-pointer shadow-lg">생존 시작</button>
+<div id="overlayTitle" class="text-2xl font-black text-orange-400 tracking-tight">좀비 웨이브 3D[cite: 2]</div>
+<p id="overlaySub" class="text-xs text-slate-300 text-center px-6 max-w-sm">1분마다 다음 웨이브로! 벽을 엄폐물 삼아 몰려오는 좀비 떼를 처치하세요.[cite: 2]</p>
+<button id="overlayActionBtn" type="button" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-500 text-slate-950 font-black text-sm cursor-pointer shadow-lg">생존 시작[cite: 2]</button>
 </div>
 
 <!-- Bomb Explosion Visual Overlay (VIP Grenade) -->
@@ -92,7 +95,7 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 </radialGradient>
 </defs>
 </svg>
-<div class="text-xl sm:text-2xl font-black text-yellow-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] tracking-tight -mt-2">💥 수류탄 폭발!</div>
+<div class="text-xl sm:text-2xl font-black text-yellow-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] tracking-tight -mt-2">💥 수류탄 폭발![cite: 2]</div>
 </div>
 </div>
 
@@ -108,13 +111,13 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <!-- VIP Grenade Quick Use Button -->
 <button id="grenadeUseBtn" type="button" class="absolute right-2 bottom-8 sm:right-2.5 sm:bottom-9 z-10 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-rose-600 hover:from-fuchsia-500 hover:to-rose-500 text-white border border-amber-300/80 shadow-lg text-[11px] sm:text-xs font-black flex items-center gap-1.5 cursor-pointer active:scale-95 transition">
 <span>💣</span>
-<span id="grenadeBtnLabel">수류탄 (0)</span>
+<span id="grenadeBtnLabel">수류탄 (0)[cite: 2]</span>
 <kbd class="px-1 py-0.5 rounded bg-black/35 text-[9px]">G</kbd>
 </button>
 
 <!-- touch zones hint -->
 <div class="absolute bottom-1.5 left-0 right-0 z-10 pointer-events-none flex justify-center px-2">
-<div class="text-[9px] sm:text-[10px] text-white/60 bg-black/45 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full truncate max-w-full">터치 드래그/방향키 이동 · 자동 사격 · G 수류탄</div>
+<div class="text-[9px] sm:text-[10px] text-white/60 bg-black/45 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full truncate max-w-full">터치 드래그/방향키 이동 · 자동 사격 · G 수류탄[cite: 2]</div>
 </div>
 </section>
 
@@ -122,10 +125,10 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2.5">
 <div class="flex items-center justify-between">
 <div>
-<div class="text-xs font-extrabold text-lime-300">🔫 무기 상점</div>
-<div class="text-[10px] text-slate-400">장착 무기: <span id="equippedWeaponLabel" class="font-bold text-amber-300">권총</span></div>
+<div class="text-xs font-extrabold text-lime-300">🔫 무기 상점[cite: 2]</div>
+<div class="text-[10px] text-slate-400">장착 무기: <span id="equippedWeaponLabel" class="font-bold text-amber-300">권총</span>[cite: 2]</div>
 </div>
-<span class="text-[10px] text-slate-400">좀비 처치당 +10G (VIP +25G)</span>
+<span class="text-[10px] text-slate-400">좀비 처치당 +10G (VIP +25G)[cite: 2]</span>
 </div>
 <div id="weaponShopGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
 </section>
@@ -133,78 +136,78 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2">
 <div class="flex justify-between items-center">
 <div>
-<div class="text-xs font-extrabold text-orange-300">🏆 명예의 전당</div>
-<div class="text-[10px] text-slate-400">최고 처치 수 &amp; 생존 웨이브</div>
+<div class="text-xs font-extrabold text-orange-300">🏆 명예의 전당[cite: 2]</div>
+<div class="text-[10px] text-slate-400">최고 처치 수 &amp; 생존 웨이브[cite: 2]</div>
 </div>
-<button id="refreshRankingBtn" type="button" class="px-2.5 py-1 rounded-lg text-[11px] bg-slate-800 border border-slate-700 cursor-pointer">새로고침</button>
+<button id="refreshRankingBtn" type="button" class="px-2.5 py-1 rounded-lg text-[11px] bg-slate-800 border border-slate-700 cursor-pointer">새로고침[cite: 2]</button>
 </div>
 <div class="rounded-lg border border-orange-500/25 px-3 py-2 flex justify-between text-[11px] bg-slate-950/80">
-<span class="text-slate-400">내 순위</span>
-<span id="myRankDetailText" class="font-bold text-orange-300">로그인 후 등록</span>
+<span class="text-slate-400">내 순위[cite: 2]</span>
+<span id="myRankDetailText" class="font-bold text-orange-300">로그인 후 등록[cite: 2]</span>
 </div>
 <div id="rankingListContainer" class="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto"></div>
 </section>
 
 <section class="bg-gradient-to-r from-slate-900 to-orange-950/20 border border-orange-500/30 rounded-xl p-3 flex justify-between items-center mb-3">
-<div class="flex items-center gap-2"><span class="text-lg">🧟</span><span class="text-xs font-black text-lime-300">바로가기 설치</span></div>
-<button id="androidInstallBtn" type="button" class="px-3 py-2 rounded-lg bg-orange-500 text-slate-950 text-xs font-black cursor-pointer"><span id="androidInstallBtnText">설치</span></button>
+<div class="flex items-center gap-2"><span class="text-lg">🧟</span><span class="text-xs font-black text-lime-300">바로가기 설치[cite: 2]</span></div>
+<button id="androidInstallBtn" type="button" class="px-3 py-2 rounded-lg bg-orange-500 text-slate-950 text-xs font-black cursor-pointer"><span id="androidInstallBtnText">설치[cite: 2]</span></button>
 </section>
 </main>
 
 <div id="toastBox" class="pointer-events-none fixed bottom-5 left-1/2 -translate-x-1/2 z-50 opacity-0 transition-all duration-200 translate-y-2">
-<div id="toastMsg" class="px-4 py-2 rounded-xl bg-slate-900/95 border border-orange-500/50 text-xs font-bold text-orange-200 shadow-xl">알림</div>
+<div id="toastMsg" class="px-4 py-2 rounded-xl bg-slate-900/95 border border-orange-500/50 text-xs font-bold text-orange-200 shadow-xl">알림[cite: 2]</div>
 </div>
 
 <div id="vipModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
 <div class="bg-slate-900 border border-purple-500/50 rounded-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-5">
-<div class="flex justify-between mb-3"><h2 class="font-black text-amber-300">👑 VIP 7,000원</h2><button id="vipCloseBtn" type="button" class="cursor-pointer text-slate-400">✕</button></div>
-<ul class="text-xs text-slate-300 space-y-1 mb-3"><li>❤️ 체력 3개 &amp; 웨이브 생존 강화</li><li>🪙 좀비 처치 골드 25G (기본 10G)</li><li>💣 VIP 전용 수류탄 1개 기본 지급 &amp; 구매 가능 (전체 좀비 일소)</li></ul>
-<div id="tossWidgetLoading" class="text-xs text-center text-slate-500 py-3">결제 로딩...</div>
+<div class="flex justify-between mb-3"><h2 class="font-black text-amber-300">👑 VIP 7,000원[cite: 2]</h2><button id="vipCloseBtn" type="button" class="cursor-pointer text-slate-400">✕</button></div>
+<ul class="text-xs text-slate-300 space-y-1 mb-3"><li>❤️ 체력 3개 &amp; 웨이브 생존 강화[cite: 2]</li><li>🪙 좀비 처치 골드 25G (기본 10G)[cite: 2]</li><li>💣 VIP 전용 수류탄 1개 기본 지급 &amp; 구매 가능 (전체 좀비 일소)[cite: 2]</li></ul>
+<div id="tossWidgetLoading" class="text-xs text-center text-slate-500 py-3">결제 로딩...[cite: 2]</div>
 <div id="toss-payment-method"></div><div id="toss-agreement"></div>
-<button id="vipPaySubmitBtn" type="button" disabled class="w-full mt-3 py-3 rounded-xl bg-amber-400 text-slate-950 font-black disabled:bg-slate-700 cursor-pointer">결제</button>
+<button id="vipPaySubmitBtn" type="button" disabled class="w-full mt-3 py-3 rounded-xl bg-amber-400 text-slate-950 font-black disabled:bg-slate-700 cursor-pointer">결제[cite: 2]</button>
 </div>
 </div>
 
-<!-- 용사 키우기 동일 양식 로그인/회원가입 모달 -->
+<!-- 로그인/회원가입 모달 -->
 <div id="authModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
 <div class="bg-slate-900 border border-amber-500/40 rounded-2xl max-w-sm w-full max-h-[90dvh] overflow-y-auto p-5 shadow-2xl">
 <div class="flex items-center justify-between mb-2">
 <div class="flex items-center gap-2">
 <span class="text-lg">🟨</span>
-<h2 class="text-base font-extrabold text-amber-300">서버 저장 계정</h2>
+<h2 class="text-base font-extrabold text-amber-300">서버 저장 계정[cite: 2]</h2>
 </div>
 <button id="authCloseBtn" type="button" class="text-slate-400 hover:text-slate-200 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
 </div>
-<p class="text-xs text-slate-400 leading-relaxed mb-4">휴대폰 번호 뒷 8자리와 숫자 비밀번호 4자리로 간편하게 서버에 데이터를 영구 저장하세요.</p>
+<p class="text-xs text-slate-400 leading-relaxed mb-4">휴대폰 번호 뒷 8자리와 숫자 비밀번호 4자리로 간편하게 서버에 데이터를 영구 저장하세요.[cite: 2]</p>
 <div class="flex rounded-xl bg-slate-950 p-1 border border-slate-800 mb-4">
-<button id="modeLoginBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition cursor-pointer">기존 계정 로그인</button>
-<button id="modeRegisterBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition cursor-pointer">간편 회원가입</button>
+<button id="modeLoginBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition cursor-pointer">기존 계정 로그인[cite: 2]</button>
+<button id="modeRegisterBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition cursor-pointer">간편 회원가입[cite: 2]</button>
 </div>
 <form id="authForm" class="flex flex-col gap-3.5">
 <div>
-<label class="block text-[11px] font-bold text-slate-300 mb-1.5">아이디 (휴대폰 번호 뒷 8자리)</label>
+<label class="block text-[11px] font-bold text-slate-300 mb-1.5">아이디 (휴대폰 번호 뒷 8자리)[cite: 2]</label>
 <div class="flex items-center rounded-xl bg-slate-950 border border-slate-700 focus-within:border-amber-400 overflow-hidden">
-<span class="px-3 py-2.5 bg-slate-900 text-amber-300 font-extrabold text-sm border-r border-slate-800 select-none">010 -</span>
+<span class="px-3 py-2.5 bg-slate-900 text-amber-300 font-extrabold text-sm border-r border-slate-800 select-none">010 -[cite: 2]</span>
 <input id="authPhoneDigits" type="tel" inputmode="numeric" maxlength="9" autocomplete="off" required placeholder="1234-5678 (숫자 8자리)" class="w-full px-3 py-2.5 bg-transparent text-sm font-bold tracking-wider text-slate-100 focus:outline-none"/>
 </div>
 </div>
 <div>
-<label class="block text-[11px] font-bold text-slate-300 mb-1.5">비밀번호 (숫자 4자리)</label>
+<label class="block text-[11px] font-bold text-slate-300 mb-1.5">비밀번호 (숫자 4자리)[cite: 2]</label>
 <input id="authPinCode" type="password" inputmode="numeric" maxlength="4" pattern="\d{4}" autocomplete="off" required placeholder="숫자 4자리 입력 (예: 1234)" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm font-bold tracking-[0.35em] text-slate-100 focus:outline-none focus:border-amber-400"/>
 </div>
 <div id="authErrorMsg" class="hidden text-xs text-rose-400 font-semibold bg-rose-950/40 border border-rose-800/50 rounded-lg px-3 py-2"></div>
-<button id="authSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition mt-0.5 cursor-pointer">로그인 및 서버저장 연동</button>
+<button id="authSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition mt-0.5 cursor-pointer">로그인 및 서버저장 연동[cite: 2]</button>
 </form>
 </div>
 </div>
 
 <div id="resetModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-4">
 <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5">
-<h2 class="font-extrabold mb-2">초기화</h2>
-<p class="text-xs text-slate-400 mb-4">기록을 모두 지울까요?</p>
+<h2 class="font-extrabold mb-2">초기화[cite: 2]</h2>
+<p class="text-xs text-slate-400 mb-4">기록을 모두 지울까요?[cite: 2]</p>
 <div class="flex justify-end gap-2">
-<button id="resetCancelBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-slate-800 cursor-pointer">취소</button>
-<button id="resetConfirmBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-rose-600 cursor-pointer">초기화</button>
+<button id="resetCancelBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-slate-800 cursor-pointer">취소[cite: 2]</button>
+<button id="resetConfirmBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-rose-600 cursor-pointer">초기화[cite: 2]</button>
 </div>
 </div>
 </div>
@@ -212,7 +215,6 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <script type="module">
 import * as THREE from 'three';
 
-// ===== Shared app state (login/ranking) =====
 const GAME_ID = 'zombie_wave_3d_v1';
 const CLOUD = 'https://02826k.duckdns.org';
 const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
@@ -224,7 +226,6 @@ const TOKEN_KEY = 'moto_racing_3d_jwt';
 const USER_KEY = 'moto_racing_3d_user';
 const WAVE_DURATION_SEC = 60;
 
-// 3 Main Weapons: 권총, 기관총, 화염방사기 (+ VIP 수류탄)
 const WEAPONS = [
   { id: 'pistol', name: '권총', icon: '🔫', cost: 0, fireRate: 0.36, dmg: 1, speed: 24, pellets: 1, spread: 0, color: 0xffdf69, desc: '기본 권총 · 안정적인 단발 사격' },
   { id: 'mg', name: '기관총', icon: '🧨', cost: 1500, fireRate: 0.085, dmg: 1, speed: 30, pellets: 1, spread: 0.08, color: 0x38bdf8, desc: '초고속 연사 · 몰려오는 좀비 제압' },
@@ -236,13 +237,10 @@ function maskPrivacyInfo(value) {
   if (value === null || value === undefined) return '익명';
   let s = String(value).trim();
   if (!s) return '익명';
-  // 휴대폰/전화번호 형태(하이픈·공백·점 포함 또는 숫자만) 중간 번호 마스킹
   s = s.replace(/(01\d|0\d{1,2})[-.\s]?([\d*]{3,4})[-.\s]?(\d{4})/g, (_, p1, p2, p3) => {
     return `${p1}-${'*'.repeat(p2.length)}-${p3}`;
   });
-  // 앞자리(010 등) 없이 뒷 8자리만 있는 경우 (예: 1234-5678 또는 12345678)
   s = s.replace(/^([\d*]{4})[-.\s]?(\d{4})$/, (_, p1, p2) => `****-${p2}`);
-  // 이메일 형태 마스킹
   s = s.replace(/([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, (_, localPart, domain) => {
     const visible = localPart.slice(0, Math.min(2, localPart.length));
     return `${visible}${'*'.repeat(Math.max(3, localPart.length - visible.length))}@${domain}`;
@@ -271,7 +269,7 @@ let isRegisterMode = false;
 const defState = () => ({
   highScore: 0,
   bestWave: 1,
-  gold: 200,
+  gold: 0, // 게임 시작 시 0골드로 설정
   soundEnabled: true,
   bgmEnabled: true,
   isVip: false,
@@ -280,6 +278,7 @@ const defState = () => ({
   grenades: 0,
   vipGrenadeClaimed: false
 });
+
 function sanitize(p) {
   const b = defState();
   if (!p || typeof p !== 'object') return b;
@@ -296,7 +295,7 @@ function sanitize(p) {
   return {
     highScore: typeof p.highScore === 'number' && p.highScore >= 0 ? Math.floor(p.highScore) : 0,
     bestWave: typeof p.bestWave === 'number' && p.bestWave >= 1 ? Math.floor(p.bestWave) : 1,
-    gold: typeof p.gold === 'number' && p.gold >= 0 ? Math.floor(p.gold) : 200,
+    gold: typeof p.gold === 'number' && p.gold >= 0 ? Math.floor(p.gold) : 0,
     soundEnabled: typeof p.soundEnabled === 'boolean' ? p.soundEnabled : true,
     bgmEnabled: typeof p.bgmEnabled === 'boolean' ? p.bgmEnabled : true,
     isVip: isVipVal,
@@ -348,7 +347,6 @@ async function loadServer() {
   } catch {}
 }
 
-// Audio (bgm.mp3 placed alongside index.html + Web Audio SFX)
 let audioCtx = null;
 const bgmAudio = new Audio('bgm.mp3');
 bgmAudio.loop = true;
@@ -383,7 +381,6 @@ function playSound(t) {
   }
 }
 
-// ===== ZOMBIE WAVE 3D ARENA =====
 const viewport = document.getElementById('viewport');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x101a18);
@@ -405,8 +402,7 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(44, 44), new THREE.MeshSta
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 const grid = new THREE.GridHelper(44, 22, 0x59705b, 0x405445); grid.position.y = 0.012; scene.add(grid);
 
-// Perimeter walls + solid interior tactical walls (with collision boxes!)
-const obstacles = []; // { x, z, halfW, halfD }
+const obstacles = [];
 const wallMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.85, metalness: 0.15 });
 const wallTopMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.7 });
 for (const [x, z, sx, sz] of [[0, -21, 44, 1], [0, 21, 44, 1], [-21, 0, 1, 44], [21, 0, 1, 44]]) {
@@ -414,7 +410,6 @@ for (const [x, z, sx, sz] of [[0, -21, 44, 1], [0, 21, 44, 1], [-21, 0, 1, 44], 
   w.position.set(x, 0.9, z); w.castShadow = true; w.receiveShadow = true; scene.add(w);
 }
 
-// Interior defensive walls (barricades) with real collision for player, zombies, and bullets
 const interiorWalls = [
   [-6.5, -5.5, 4.5, 0.9, 1.7],
   [6.5, -5.5, 4.5, 0.9, 1.7],
@@ -487,7 +482,6 @@ function resolveCircleBox(pos, radius, obs) {
       pos.x += (dx / dist) * overlap;
       pos.z += (dz / dist) * overlap;
     } else {
-      // Center is inside box; push out along shortest axis
       const penX = obs.halfW + radius - Math.abs(pos.x - obs.x);
       const penZ = obs.halfD + radius - Math.abs(pos.z - obs.z);
       if (penX < penZ) pos.x += pos.x >= obs.x ? penX : -penX;
@@ -516,7 +510,6 @@ const player = makeSurvivor();
 player.position.set(0, 0, 2);
 scene.add(player);
 
-// Shared geometries/materials for 10x zombie hordes (smooth 60fps!)
 const zombieMat = new THREE.MeshStandardMaterial({ color: 0x79a85a, roughness: .9 });
 const zombieDark = new THREE.MeshStandardMaterial({ color: 0x354b35, roughness: 1 });
 const zEyeMat = new THREE.MeshBasicMaterial({ color: 0xff3b30 });
@@ -564,10 +557,8 @@ const scythePoleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalnes
 const scytheBladeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.88, roughness: 0.18, emissive: 0x3b0764, emissiveIntensity: 0.25 });
 function makeImmortalZombie() {
   const g = new THREE.Group();
-  // Tattered dark reaper robe
   const robe = new THREE.Mesh(new THREE.CylinderGeometry(.28, .62, 1.38, 10), reaperCloakMat);
   robe.position.y = .72; robe.castShadow = true; g.add(robe);
-  // Shadowy skull & pointed hood
   const skull = new THREE.Mesh(new THREE.SphereGeometry(.26, 12, 10), new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 1 }));
   skull.position.y = 1.62; g.add(skull);
   const hood = new THREE.Mesh(new THREE.ConeGeometry(.42, .68, 10), reaperHoodMat);
@@ -576,13 +567,11 @@ function makeImmortalZombie() {
     const eye = new THREE.Mesh(zEyeGeo, reaperEyeMat);
     eye.position.set(x, 1.62, -.23); g.add(eye);
   }
-  // Arms
   const leftArm = new THREE.Mesh(zArmGeo, reaperCloakMat);
   leftArm.position.set(-.42, 1.05, -.1); leftArm.rotation.z = -.45; g.add(leftArm);
   const rightArm = new THREE.Mesh(zArmGeo, reaperCloakMat);
   rightArm.position.set(.44, 1.08, -.22); rightArm.rotation.x = -.65; g.add(rightArm);
 
-  // Long Grim Reaper Scythe held in right hand
   const scythe = new THREE.Group();
   scythe.position.set(.52, 1.15, -.35);
   scythe.rotation.x = .28;
@@ -635,7 +624,6 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 if (typeof ResizeObserver !== 'undefined') new ResizeObserver(resize).observe(viewport);
 resize();
 
-// Wave 1: half zombies; Wave 2+: 2x per wave
 function getFarSpawnPos() {
   const candidates = [];
   for (let i = 0; i < 24; i++) {
@@ -784,7 +772,6 @@ function shootAt(target) {
   }
 }
 
-// VIP Grenade: Bomb image overlay + eliminate ALL zombies
 function useGrenade() {
   if (!state.isVip) {
     showToast('👑 수류탄은 VIP 전용입니다!');
@@ -810,11 +797,9 @@ function useGrenade() {
     state.gold += killed * 25;
   }
 
-  // Show Bomb explosion image overlay
   const bo = document.getElementById('bombOverlay');
   bo.classList.remove('hidden');
   bo.classList.add('flex');
-  // Restart animation
   const animBox = bo.firstElementChild;
   animBox.classList.remove('bomb-pop');
   void animBox.offsetWidth;
@@ -903,7 +888,6 @@ function animate() {
       for (const obs of obstacles) resolveCircleBox(player.position, 0.55, obs);
     }
 
-    // Random survivor rescue (+1 life, max 5)
     if (rescueNpc) {
       const marker = rescueNpc.getObjectByName('sosMarker');
       const ring = rescueNpc.getObjectByName('beaconRing');
@@ -929,7 +913,6 @@ function animate() {
       }
     }
 
-    // Zombie Horde Spawner (Wave 1 easier, Wave 2+ scales 2x)
     spawnT -= dt;
     if (spawnT <= 0) {
       spawnZombiePack();
@@ -938,7 +921,6 @@ function animate() {
         : Math.max(0.14, 0.34 - (stage - 1) * 0.025) * (0.8 + Math.random() * 0.4);
     }
 
-    // Auto-fire equipped weapon (prioritize killable zombies over immortal boss)
     const w = getWeapon();
     shootT -= dt;
     if (shootT <= 0 && zombies.length) {
@@ -963,13 +945,11 @@ function animate() {
       }
     }
 
-    // Bullets update & wall/zombie collision
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i];
       b.mesh.position.addScaledVector(b.dir, b.speed * dt);
       b.life -= dt;
 
-      // Check interior wall hit
       let hitWall = false;
       for (const obs of obstacles) {
         if (Math.abs(b.mesh.position.x - obs.x) < obs.halfW + 0.12 &&
@@ -1018,7 +998,6 @@ function animate() {
       }
     }
 
-    // Zombies movement + wall collision
     for (let i = zombies.length - 1; i >= 0; i--) {
       const z = zombies[i];
       const dx = player.position.x - z.mesh.position.x;
@@ -1125,7 +1104,7 @@ function renderWeaponShop() {
     grid.appendChild(btn);
   });
 
-  // 4th slot: VIP-only Grenade
+  // 수류탄: 장착 아님, '구매하기'로만 표시
   const gBtn = document.createElement('button');
   gBtn.type = 'button';
   gBtn.className = 'text-left rounded-xl p-2.5 border transition cursor-pointer flex flex-col justify-between gap-1.5 ' + (
@@ -1136,9 +1115,9 @@ function renderWeaponShop() {
       <span class="text-xs font-black text-white">💣 수류탄</span>
       <span class="text-[10px] font-black px-1.5 py-0.5 rounded ${
         state.isVip ? 'bg-fuchsia-500/25 text-fuchsia-200' : 'bg-amber-500/20 text-amber-300'
-      }">${state.isVip ? GRENADE_COST.toLocaleString() + 'G · 보유 ' + state.grenades : '🔒 VIP 전용'}</span>
+      }">${state.isVip ? '구매하기 (' + GRENADE_COST.toLocaleString() + 'G)' : '🔒 VIP 전용'}</span>
     </div>
-    <div class="text-[10px] text-slate-400 leading-tight">화면 폭발 &amp; 전체 좀비 즉시 제거 (G키)</div>
+    <div class="text-[10px] text-slate-400 leading-tight">화면 폭발 &amp; 전체 좀비 즉시 제거 (보유: ${state.grenades}개)</div>
   `;
   gBtn.onclick = () => {
     if (!state.isVip) {
@@ -1171,7 +1150,7 @@ function updateUI() {
   if (authToken && currentUsername) {
     b.textContent = '📱 ' + maskPrivacyInfo(currentUsername) + (state.isVip ? ' 👑' : '');
     b.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/40 text-emerald-300';
-    s.textContent = '클라우드 연동 중'; sl.textContent = '서버저장'; lo.classList.remove('hidden');
+    s.textContent = '클라우드 연동 중'; sl.textContent = '로그아웃'; lo.classList.add('hidden'); // 로그인 상태 시 토글 형태로 제어
   } else {
     b.textContent = '👤 게스트';
     b.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-300';
@@ -1253,9 +1232,13 @@ function setAuthMode(register) {
   }
 }
 document.getElementById('serverSaveGoldBtn').onclick = () => {
-  if (authToken) syncSave(true);
-  else { setAuthMode(false); authM.classList.remove('hidden'); authM.classList.add('flex'); setTimeout(() => phone.focus(), 50); }
+  if (authToken) {
+    handleLogout(false);
+  } else {
+    setAuthMode(false); authM.classList.remove('hidden'); authM.classList.add('flex'); setTimeout(() => phone.focus(), 50);
+  }
 };
+document.getElementById('logoutBtn').onclick = () => handleLogout(false);
 document.getElementById('authCloseBtn').onclick = () => { phone.value = ''; pin.value = ''; authM.classList.add('hidden'); authM.classList.remove('flex'); };
 document.getElementById('modeLoginBtn').onclick = () => setAuthMode(false);
 document.getElementById('modeRegisterBtn').onclick = () => setAuthMode(true);
@@ -1313,15 +1296,15 @@ document.getElementById('authForm').onsubmit = async e => {
     showToast(isRegisterMode ? `🟨 [${maskedUser}] 가입 완료!` : `🟨 [${maskedUser}] 로그인 완료!`);
   } catch {
     errEl.textContent = '클라우드 게임 서버와 연결할 수 없습니다.';
-    errEl.classList.remove('hidden');
+    errEl.classList.add('hidden');
   }
 };
-document.getElementById('logoutBtn').onclick = () => handleLogout(false);
+
 function handleLogout(exp) {
   authToken = null; currentUsername = null;
   localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY);
   state.isVip = false; updateUI(); fetchRank();
-  showToast(exp ? '만료' : '로그아웃');
+  showToast(exp ? '로그인 정보가 만료되었습니다.' : '로그아웃되었습니다.');
 }
 
 const resetM = document.getElementById('resetModal');
@@ -1335,17 +1318,30 @@ document.getElementById('resetConfirmBtn').onclick = () => {
   document.getElementById('overlayActionBtn').textContent = '생존 시작';
   saveState(true); updateUI();
   resetM.classList.add('hidden'); resetM.classList.remove('flex');
-  showToast('🔄 초기화');
+  showToast('🔄 초기화 완료');
 };
 
 let deferred = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; });
 document.getElementById('androidInstallBtn').onclick = async () => {
-  if (deferred) { deferred.prompt(); await deferred.userChoice; deferred = null; document.getElementById('androidInstallBtnText').textContent = '완료'; return; }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['[InternetShortcut]\\r\\nURL=' + location.href + '\\r\\n'], { type: 'text/plain' }));
-  a.download = '좀비웨이브3D.url'; a.click();
-  document.getElementById('androidInstallBtnText').textContent = '완료';
+  if (deferred) {
+    deferred.prompt();
+    const choiceResult = await deferred.userChoice;
+    if (choiceResult.outcome === 'accepted') {
+      showToast('✨ 홈 화면에 바로가기가 설치되었습니다!');
+    }
+    deferred = null;
+    document.getElementById('androidInstallBtnText').textContent = '완료';
+    return;
+  }
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  if (/android/i.test(ua)) {
+    showToast("📌 브라우저 우측 상단 메뉴(⋮)에서 [홈 화면에 추가]를 선택하세요!");
+  } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+    showToast("📌 하단 공유 버튼(📤)을 누른 후 [홈 화면에 추가]를 선택하세요!");
+  } else {
+    showToast("📌 브라우저 메뉴 또는 주소창 우측의 [설치 아이콘]을 눌러주세요!");
+  }
 };
 
 updateUI();
