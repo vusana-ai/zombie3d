@@ -32,7 +32,7 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <div class="flex flex-wrap items-center justify-between gap-2">
 <div class="flex items-center gap-2 flex-wrap min-w-0">
 <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500/30 to-rose-600/30 border border-orange-400/40 flex items-center justify-center text-sm">🧟</span>
-<h1 class="text-sm font-extrabold tracking-tight">좀비 웨이브 <span class="text-lime-400">3D</span>[cite: 2]</h1>
+<h1 class="text-sm font-extrabold tracking-tight">좀비 웨이브 <span class="text-lime-400">3D</span></h1>
 <span id="userBadge" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-300">👤 게스트</span>
 <button id="vipOpenBtn" type="button" class="vip-btn-glow px-2 py-0.5 rounded-md text-[10px] font-black bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white border border-amber-300/70 cursor-pointer">👑 <span id="vipHeaderBtnLabel">VIP</span></button>
 </div>
@@ -42,7 +42,7 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 </div>
 </div>
 <div class="flex items-center justify-between gap-2 text-[11px] border-t border-slate-800/60 pt-1.5">
-<p id="syncStatusText" class="text-slate-400 truncate">로그인으로 전적 영구 저장[cite: 2]</p>
+<p id="syncStatusText" class="text-slate-400 truncate">로그인으로 전적 영구 저장</p>
 <div class="flex gap-1 shrink-0">
 <button id="bgmToggleBtn" type="button" class="px-2 py-1 rounded-md bg-indigo-950/80 border border-indigo-700/50 cursor-pointer">🎵</button>
 <button id="soundToggleBtn" type="button" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 cursor-pointer">🔊</button>
@@ -57,14 +57,14 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <section class="grid grid-cols-2 sm:grid-cols-6 gap-2">
 <div class="col-span-2 sm:col-span-2 bg-slate-900/90 border border-orange-500/30 rounded-xl px-3 py-2 flex items-center justify-between">
 <div>
-<div class="text-[10px] text-orange-300/80 font-bold">WAVE <span id="scoreBadge">1</span> · <span id="waveTimerText" class="tabular-nums">00:00 / 01:00</span>[cite: 2]</div>
-<div id="scoreDisplay" class="text-base sm:text-lg font-black text-orange-400">0 킬[cite: 2]</div>
+<div class="text-[10px] text-orange-300/80 font-bold">WAVE <span id="scoreBadge">1</span> · <span id="waveTimerText" class="tabular-nums">00:00 / 01:00</span></div>
+<div id="scoreDisplay" class="text-base sm:text-lg font-black text-orange-400">0 킬</div>
 </div>
-<button id="startGameBtn" type="button" class="px-3 py-2 rounded-lg text-xs font-black bg-gradient-to-r from-orange-500 to-rose-600 text-slate-950 cursor-pointer active:scale-95 transition">생존 시작[cite: 2]</button>
+<button id="startGameBtn" type="button" class="px-3 py-2 rounded-lg text-xs font-black bg-gradient-to-r from-orange-500 to-rose-600 text-slate-950 cursor-pointer active:scale-95 transition">생존 시작</button>
 </div>
-<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">체력[cite: 2]</div><div id="livesDisplay" class="text-sm font-bold text-rose-400">❤️❤️[cite: 2]</div></div>
-<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">주변 좀비[cite: 2]</div><div id="speedDisplay" class="text-sm font-extrabold text-cyan-300 tabular-nums">대기[cite: 2]</div></div>
-<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">최고 처치[cite: 2]</div><div id="highScoreDisplay" class="text-sm font-bold text-amber-300">0 킬[cite: 2]</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">체력</div><div id="livesDisplay" class="text-sm font-bold text-rose-400">❤️❤️</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">주변 좀비</div><div id="speedDisplay" class="text-sm font-extrabold text-cyan-300 tabular-nums">대기</div></div>
+<div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">최고 처치</div><div id="highScoreDisplay" class="text-sm font-bold text-amber-300">0 킬</div></div>
 <div class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2"><div class="text-[10px] text-slate-400">보유 골드</div><div id="goldDisplay" class="text-sm font-black text-amber-400">0G</div></div>
 </section>
 
@@ -72,9 +72,9 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <section id="viewport-wrap" class="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl shadow-black/50 bg-black">
 <div id="viewport" class="absolute inset-0"></div>
 <div id="gameOverlay" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-sm flex flex-col items-center justify-center gap-3 p-4">
-<div id="overlayTitle" class="text-2xl font-black text-orange-400 tracking-tight">좀비 웨이브 3D[cite: 2]</div>
-<p id="overlaySub" class="text-xs text-slate-300 text-center px-6 max-w-sm">1분마다 다음 웨이브로! 벽을 엄폐물 삼아 몰려오는 좀비 떼를 처치하세요.[cite: 2]</p>
-<button id="overlayActionBtn" type="button" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-500 text-slate-950 font-black text-sm cursor-pointer shadow-lg">생존 시작[cite: 2]</button>
+<div id="overlayTitle" class="text-2xl font-black text-orange-400 tracking-tight">좀비 웨이브 3D</div>
+<p id="overlaySub" class="text-xs text-slate-300 text-center px-6 max-w-sm">1분마다 다음 웨이브로! 벽을 엄폐물 삼아 몰려오는 좀비 떼를 처치하세요.</p>
+<button id="overlayActionBtn" type="button" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-500 text-slate-950 font-black text-sm cursor-pointer shadow-lg">생존 시작</button>
 </div>
 
 <!-- Bomb Explosion Visual Overlay (VIP Grenade) -->
@@ -95,7 +95,7 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 </radialGradient>
 </defs>
 </svg>
-<div class="text-xl sm:text-2xl font-black text-yellow-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] tracking-tight -mt-2">💥 수류탄 폭발![cite: 2]</div>
+<div class="text-xl sm:text-2xl font-black text-yellow-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] tracking-tight -mt-2">💥 수류탄 폭발!</div>
 </div>
 </div>
 
@@ -111,13 +111,13 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <!-- VIP Grenade Quick Use Button -->
 <button id="grenadeUseBtn" type="button" class="absolute right-2 bottom-8 sm:right-2.5 sm:bottom-9 z-10 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-rose-600 hover:from-fuchsia-500 hover:to-rose-500 text-white border border-amber-300/80 shadow-lg text-[11px] sm:text-xs font-black flex items-center gap-1.5 cursor-pointer active:scale-95 transition">
 <span>💣</span>
-<span id="grenadeBtnLabel">수류탄 (0)[cite: 2]</span>
+<span id="grenadeBtnLabel">수류탄 (0)</span>
 <kbd class="px-1 py-0.5 rounded bg-black/35 text-[9px]">G</kbd>
 </button>
 
 <!-- touch zones hint -->
 <div class="absolute bottom-1.5 left-0 right-0 z-10 pointer-events-none flex justify-center px-2">
-<div class="text-[9px] sm:text-[10px] text-white/60 bg-black/45 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full truncate max-w-full">터치 드래그/방향키 이동 · 자동 사격 · G 수류탄[cite: 2]</div>
+<div class="text-[9px] sm:text-[10px] text-white/60 bg-black/45 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full truncate max-w-full">터치 드래그/방향키 이동 · 자동 사격 · G 수류탄</div>
 </div>
 </section>
 
@@ -125,10 +125,10 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2.5">
 <div class="flex items-center justify-between">
 <div>
-<div class="text-xs font-extrabold text-lime-300">🔫 무기 상점[cite: 2]</div>
-<div class="text-[10px] text-slate-400">장착 무기: <span id="equippedWeaponLabel" class="font-bold text-amber-300">권총</span>[cite: 2]</div>
+<div class="text-xs font-extrabold text-lime-300">🔫 무기 상점</div>
+<div class="text-[10px] text-slate-400">장착 무기: <span id="equippedWeaponLabel" class="font-bold text-amber-300">권총</span></div>
 </div>
-<span class="text-[10px] text-slate-400">좀비 처치당 +10G (VIP +25G)[cite: 2]</span>
+<span class="text-[10px] text-slate-400">좀비 처치당 +10G (VIP +25G)</span>
 </div>
 <div id="weaponShopGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
 </section>
@@ -136,35 +136,35 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2">
 <div class="flex justify-between items-center">
 <div>
-<div class="text-xs font-extrabold text-orange-300">🏆 명예의 전당[cite: 2]</div>
-<div class="text-[10px] text-slate-400">최고 처치 수 &amp; 생존 웨이브[cite: 2]</div>
+<div class="text-xs font-extrabold text-orange-300">🏆 명예의 전당</div>
+<div class="text-[10px] text-slate-400">최고 처치 수 &amp; 생존 웨이브</div>
 </div>
-<button id="refreshRankingBtn" type="button" class="px-2.5 py-1 rounded-lg text-[11px] bg-slate-800 border border-slate-700 cursor-pointer">새로고침[cite: 2]</button>
+<button id="refreshRankingBtn" type="button" class="px-2.5 py-1 rounded-lg text-[11px] bg-slate-800 border border-slate-700 cursor-pointer">새로고침</button>
 </div>
 <div class="rounded-lg border border-orange-500/25 px-3 py-2 flex justify-between text-[11px] bg-slate-950/80">
-<span class="text-slate-400">내 순위[cite: 2]</span>
-<span id="myRankDetailText" class="font-bold text-orange-300">로그인 후 등록[cite: 2]</span>
+<span class="text-slate-400">내 순위</span>
+<span id="myRankDetailText" class="font-bold text-orange-300">로그인 후 등록</span>
 </div>
 <div id="rankingListContainer" class="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto"></div>
 </section>
 
 <section class="bg-gradient-to-r from-slate-900 to-orange-950/20 border border-orange-500/30 rounded-xl p-3 flex justify-between items-center mb-3">
-<div class="flex items-center gap-2"><span class="text-lg">🧟</span><span class="text-xs font-black text-lime-300">바로가기 설치[cite: 2]</span></div>
-<button id="androidInstallBtn" type="button" class="px-3 py-2 rounded-lg bg-orange-500 text-slate-950 text-xs font-black cursor-pointer"><span id="androidInstallBtnText">설치[cite: 2]</span></button>
+<div class="flex items-center gap-2"><span class="text-lg">🧟</span><span class="text-xs font-black text-lime-300">바로가기 설치</span></div>
+<button id="androidInstallBtn" type="button" class="px-3 py-2 rounded-lg bg-orange-500 text-slate-950 text-xs font-black cursor-pointer"><span id="androidInstallBtnText">설치</span></button>
 </section>
 </main>
 
 <div id="toastBox" class="pointer-events-none fixed bottom-5 left-1/2 -translate-x-1/2 z-50 opacity-0 transition-all duration-200 translate-y-2">
-<div id="toastMsg" class="px-4 py-2 rounded-xl bg-slate-900/95 border border-orange-500/50 text-xs font-bold text-orange-200 shadow-xl">알림[cite: 2]</div>
+<div id="toastMsg" class="px-4 py-2 rounded-xl bg-slate-900/95 border border-orange-500/50 text-xs font-bold text-orange-200 shadow-xl">알림</div>
 </div>
 
 <div id="vipModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4">
 <div class="bg-slate-900 border border-purple-500/50 rounded-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-5">
-<div class="flex justify-between mb-3"><h2 class="font-black text-amber-300">👑 VIP 7,000원[cite: 2]</h2><button id="vipCloseBtn" type="button" class="cursor-pointer text-slate-400">✕</button></div>
-<ul class="text-xs text-slate-300 space-y-1 mb-3"><li>❤️ 체력 3개 &amp; 웨이브 생존 강화[cite: 2]</li><li>🪙 좀비 처치 골드 25G (기본 10G)[cite: 2]</li><li>💣 VIP 전용 수류탄 1개 기본 지급 &amp; 구매 가능 (전체 좀비 일소)[cite: 2]</li></ul>
-<div id="tossWidgetLoading" class="text-xs text-center text-slate-500 py-3">결제 로딩...[cite: 2]</div>
+<div class="flex justify-between mb-3"><h2 class="font-black text-amber-300">👑 VIP 7,000원</h2><button id="vipCloseBtn" type="button" class="cursor-pointer text-slate-400">✕</button></div>
+<ul class="text-xs text-slate-300 space-y-1 mb-3"><li>❤️ 체력 3개 &amp; 웨이브 생존 강화</li><li>🪙 좀비 처치 골드 25G (기본 10G)</li><li>💣 VIP 전용 수류탄 1개 기본 지급 &amp; 구매 가능 (전체 좀비 일소)</li></ul>
+<div id="tossWidgetLoading" class="text-xs text-center text-slate-500 py-3">결제 로딩...</div>
 <div id="toss-payment-method"></div><div id="toss-agreement"></div>
-<button id="vipPaySubmitBtn" type="button" disabled class="w-full mt-3 py-3 rounded-xl bg-amber-400 text-slate-950 font-black disabled:bg-slate-700 cursor-pointer">결제[cite: 2]</button>
+<button id="vipPaySubmitBtn" type="button" disabled class="w-full mt-3 py-3 rounded-xl bg-amber-400 text-slate-950 font-black disabled:bg-slate-700 cursor-pointer">결제</button>
 </div>
 </div>
 
@@ -174,40 +174,40 @@ body{font-family:'Noto Sans KR',sans-serif;user-select:none;-webkit-tap-highligh
 <div class="flex items-center justify-between mb-2">
 <div class="flex items-center gap-2">
 <span class="text-lg">🟨</span>
-<h2 class="text-base font-extrabold text-amber-300">서버 저장 계정[cite: 2]</h2>
+<h2 class="text-base font-extrabold text-amber-300">서버 저장 계정</h2>
 </div>
 <button id="authCloseBtn" type="button" class="text-slate-400 hover:text-slate-200 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
 </div>
-<p class="text-xs text-slate-400 leading-relaxed mb-4">휴대폰 번호 뒷 8자리와 숫자 비밀번호 4자리로 간편하게 서버에 데이터를 영구 저장하세요.[cite: 2]</p>
+<p class="text-xs text-slate-400 leading-relaxed mb-4">휴대폰 번호 뒷 8자리와 숫자 비밀번호 4자리로 간편하게 서버에 데이터를 영구 저장하세요.</p>
 <div class="flex rounded-xl bg-slate-950 p-1 border border-slate-800 mb-4">
-<button id="modeLoginBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition cursor-pointer">기존 계정 로그인[cite: 2]</button>
-<button id="modeRegisterBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition cursor-pointer">간편 회원가입[cite: 2]</button>
+<button id="modeLoginBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition cursor-pointer">기존 계정 로그인</button>
+<button id="modeRegisterBtn" type="button" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition cursor-pointer">간편 회원가입</button>
 </div>
 <form id="authForm" class="flex flex-col gap-3.5">
 <div>
-<label class="block text-[11px] font-bold text-slate-300 mb-1.5">아이디 (휴대폰 번호 뒷 8자리)[cite: 2]</label>
+<label class="block text-[11px] font-bold text-slate-300 mb-1.5">아이디 (휴대폰 번호 뒷 8자리)</label>
 <div class="flex items-center rounded-xl bg-slate-950 border border-slate-700 focus-within:border-amber-400 overflow-hidden">
-<span class="px-3 py-2.5 bg-slate-900 text-amber-300 font-extrabold text-sm border-r border-slate-800 select-none">010 -[cite: 2]</span>
+<span class="px-3 py-2.5 bg-slate-900 text-amber-300 font-extrabold text-sm border-r border-slate-800 select-none">010 -</span>
 <input id="authPhoneDigits" type="tel" inputmode="numeric" maxlength="9" autocomplete="off" required placeholder="1234-5678 (숫자 8자리)" class="w-full px-3 py-2.5 bg-transparent text-sm font-bold tracking-wider text-slate-100 focus:outline-none"/>
 </div>
 </div>
 <div>
-<label class="block text-[11px] font-bold text-slate-300 mb-1.5">비밀번호 (숫자 4자리)[cite: 2]</label>
+<label class="block text-[11px] font-bold text-slate-300 mb-1.5">비밀번호 (숫자 4자리)</label>
 <input id="authPinCode" type="password" inputmode="numeric" maxlength="4" pattern="\d{4}" autocomplete="off" required placeholder="숫자 4자리 입력 (예: 1234)" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm font-bold tracking-[0.35em] text-slate-100 focus:outline-none focus:border-amber-400"/>
 </div>
 <div id="authErrorMsg" class="hidden text-xs text-rose-400 font-semibold bg-rose-950/40 border border-rose-800/50 rounded-lg px-3 py-2"></div>
-<button id="authSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition mt-0.5 cursor-pointer">로그인 및 서버저장 연동[cite: 2]</button>
+<button id="authSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition mt-0.5 cursor-pointer">로그인 및 서버저장 연동</button>
 </form>
 </div>
 </div>
 
 <div id="resetModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-4">
 <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5">
-<h2 class="font-extrabold mb-2">초기화[cite: 2]</h2>
-<p class="text-xs text-slate-400 mb-4">기록을 모두 지울까요?[cite: 2]</p>
+<h2 class="font-extrabold mb-2">초기화</h2>
+<p class="text-xs text-slate-400 mb-4">기록을 모두 지울까요?</p>
 <div class="flex justify-end gap-2">
-<button id="resetCancelBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-slate-800 cursor-pointer">취소[cite: 2]</button>
-<button id="resetConfirmBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-rose-600 cursor-pointer">초기화[cite: 2]</button>
+<button id="resetCancelBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-slate-800 cursor-pointer">취소</button>
+<button id="resetConfirmBtn" type="button" class="px-3 py-2 rounded-xl text-xs bg-rose-600 cursor-pointer">초기화</button>
 </div>
 </div>
 </div>
@@ -1296,7 +1296,7 @@ document.getElementById('authForm').onsubmit = async e => {
     showToast(isRegisterMode ? `🟨 [${maskedUser}] 가입 완료!` : `🟨 [${maskedUser}] 로그인 완료!`);
   } catch {
     errEl.textContent = '클라우드 게임 서버와 연결할 수 없습니다.';
-    errEl.classList.add('hidden');
+    errEl.classList.remove('hidden');
   }
 };
 
@@ -1323,6 +1323,9 @@ document.getElementById('resetConfirmBtn').onclick = () => {
 
 let deferred = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; });
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
 document.getElementById('androidInstallBtn').onclick = async () => {
   if (deferred) {
     deferred.prompt();
