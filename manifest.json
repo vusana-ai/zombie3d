@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "좀비 웨이브 3D — 최후의 생존자",
   "short_name": "좀비 웨이브 3D",
   "start_url": "./index.html",
@@ -9,13 +10,13 @@
   "icons": [
     {
       "src": "./icon.png",
-      "sizes": "512x512",
+      "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "./icon.png",
-      "sizes": "512x512",
+      "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
